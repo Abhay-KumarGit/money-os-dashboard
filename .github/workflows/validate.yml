@@ -32,7 +32,7 @@ jobs:
           PY
       - name: Verify no obvious private credentials are committed
         run: |
-          if grep -R -E "sb_secret_[A-Za-z0-9_-]{10,}|GOOGLE_REFRESH_TOKEN=|BROKER_PDF_PASSWORD=" --exclude-dir=.git .; then
+          if grep -R -E "sb_secret_[A-Za-z0-9_-]{10,}|GOOGLE_REFRESH_TOKEN=|BROKER_PDF_PASSWORD=" --exclude-dir=.git --exclude=validate.yml .; then
             echo "Potential private credential found"
             exit 1
           fi
