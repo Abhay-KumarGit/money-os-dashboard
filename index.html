@@ -1,1 +1,139 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Money OS</title><link rel="stylesheet" href="styles.css"></head><body><main id="root"><h1>Money OS</h1><p>Private portfolio dashboard</p></main><script src="app.js" defer></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0a0d12">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://epyixyfcwdpkauenljle.supabase.co; img-src 'self' data:; style-src 'self'; script-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'">
+  <title>Money OS</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="boot" class="boot"><div class="brand-mark">₹</div></div>
+
+  <main id="locked" class="locked hidden">
+    <section class="lock-card panel">
+      <div class="brand">
+        <div class="brand-mark">₹</div>
+        <div><p class="eyebrow">PRIVATE PORTFOLIO</p><h1>Money OS</h1></div>
+      </div>
+      <p>Your investments, in one quiet place.</p>
+      <label class="remember-line"><input id="rememberDevice" type="checkbox" checked><span>Keep this device signed in for 7 days</span></label>
+      <button id="unlockBtn" class="primary full">Unlock with password</button>
+      <p id="lockError" class="error hidden"></p>
+      <div class="security-note"><span class="dot"></span><span>Password verification happens on your private backend. Portfolio data is not embedded in this public site.</span></div>
+    </section>
+  </main>
+
+  <div id="app" class="app hidden">
+    <header class="topbar">
+      <button class="brand brand-button" data-nav="overview">
+        <div class="brand-mark">₹</div>
+        <div><p class="eyebrow">PORTFOLIO</p><div class="brand-title">Money OS</div></div>
+      </button>
+      <div class="top-actions">
+        <div id="syncPill" class="sync-pill"><span class="dot"></span><span>Synced</span></div>
+        <button id="lockBtn" class="secondary">Lock</button>
+      </div>
+    </header>
+
+    <nav class="tabs">
+      <button class="active" data-nav="overview">Overview</button>
+      <button data-nav="stocks">Stocks</button>
+      <button data-nav="funds">Mutual Funds</button>
+      <button data-nav="activity">Activity</button>
+      <button data-nav="settings">Settings</button>
+    </nav>
+
+    <div class="content">
+      <section id="view-overview" class="view active">
+        <section class="hero panel">
+          <div>
+            <p class="kicker">TOTAL PORTFOLIO</p>
+            <div id="totalValue" class="hero-value">—</div>
+            <div class="hero-meta"><span id="dayChange" class="chip neutral">— today</span><span id="totalReturn" class="muted">— overall</span></div>
+          </div>
+          <div class="hero-side"><span class="tiny muted">LAST REFRESH</span><strong id="lastRefresh">—</strong><span id="positionCount" class="subtle">— positions</span></div>
+        </section>
+
+        <section class="metrics">
+          <article class="metric panel"><span>Invested basis</span><strong id="totalCost">—</strong><small>Tracked cost basis</small></article>
+          <article class="metric panel"><span>Unrealized P&amp;L</span><strong id="unrealized">—</strong><small id="unrealizedPct">—</small></article>
+          <article class="metric panel"><span>Realized P&amp;L</span><strong id="realized">—</strong><small>Since baseline</small></article>
+          <article class="metric panel"><span>NIFTY 50</span><strong id="niftyDay">—</strong><small id="niftyDate">Latest move</small></article>
+        </section>
+
+        <section class="overview-grid">
+          <article class="panel chart-panel">
+            <div class="panel-head"><div><p class="kicker">PORTFOLIO VALUE</p><h2>Performance</h2></div><span id="historyRange" class="muted">90 days</span></div>
+            <div class="chart-wrap"><canvas id="chart"></canvas></div>
+          </article>
+          <article class="panel allocation-panel">
+            <div class="panel-head"><div><p class="kicker">ALLOCATION</p><h2>Asset mix</h2></div></div>
+            <div class="allocation"><div id="donut" class="donut"><div class="donut-hole"><strong id="allocationTotal">—</strong><span>total</span></div></div><div id="allocationLegend" class="legend"></div></div>
+          </article>
+        </section>
+
+        <section class="asset-summaries">
+          <button class="panel asset-summary" data-nav="stocks"><div><span class="asset-badge stock-badge">S</span><span>Stocks</span></div><strong id="stocksValue">—</strong><footer><span id="stocksCount">— holdings</span><span id="stocksPnl">—</span></footer></button>
+          <button class="panel asset-summary" data-nav="funds"><div><span class="asset-badge fund-badge">MF</span><span>Mutual Funds</span></div><strong id="fundsValue">—</strong><footer><span id="fundsCount">— funds</span><span id="fundsPnl">—</span></footer></button>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head"><div><p class="kicker">TODAY</p><h2>Market movers</h2></div></div>
+          <div id="movers" class="movers"></div>
+        </section>
+
+        <details class="panel basis-details"><summary>About performance calculations</summary><div id="basisText" class="basis-copy"></div></details>
+      </section>
+
+      <section id="view-stocks" class="view">
+        <div class="page-head"><div><p class="kicker">EQUITIES &amp; ETFs</p><h2>Stocks</h2><p id="stocksSubtitle" class="muted">—</p></div><div class="page-total"><span>Market value</span><strong id="stocksPageValue">—</strong></div></div>
+        <section class="mini-metrics"><article class="panel"><span>Invested basis</span><strong id="stocksCost">—</strong></article><article class="panel"><span>Unrealized P&amp;L</span><strong id="stocksUnrealized">—</strong></article><article class="panel"><span>Realized P&amp;L</span><strong id="stocksRealized">—</strong></article></section>
+        <section class="panel holdings-panel">
+          <div class="toolbar"><label class="search"><span>⌕</span><input id="stockSearch" type="search" placeholder="Search stocks"></label><select id="stockSort"><option value="value">Value</option><option value="pnl">P&amp;L</option><option value="day">Today</option><option value="name">Name</option></select></div>
+          <div class="list-head stock-grid"><span>Holding</span><span>Qty</span><span>Avg / LTP</span><span>Value</span><span>Today</span><span>P&amp;L</span></div>
+          <div id="stockList" class="asset-list"></div>
+        </section>
+      </section>
+
+      <section id="view-funds" class="view">
+        <div class="page-head"><div><p class="kicker">MUTUAL FUNDS</p><h2>Mutual Funds</h2><p id="fundsSubtitle" class="muted">—</p></div><div class="page-total"><span>Market value</span><strong id="fundsPageValue">—</strong></div></div>
+        <section class="mini-metrics"><article class="panel"><span>Invested basis</span><strong id="fundsCost">—</strong></article><article class="panel"><span>Unrealized P&amp;L</span><strong id="fundsUnrealized">—</strong></article><article class="panel"><span>Realized P&amp;L</span><strong id="fundsRealized">—</strong></article></section>
+        <section class="panel holdings-panel">
+          <div class="toolbar"><label class="search"><span>⌕</span><input id="fundSearch" type="search" placeholder="Search mutual funds"></label><select id="fundSort"><option value="value">Value</option><option value="pnl">P&amp;L</option><option value="name">Name</option></select></div>
+          <div class="list-head fund-grid"><span>Fund</span><span>Units</span><span>Avg / NAV</span><span>Value</span><span>P&amp;L</span></div>
+          <div id="fundList" class="asset-list"></div>
+        </section>
+      </section>
+
+      <section id="view-activity" class="view">
+        <div class="page-head"><div><p class="kicker">AUTOMATION</p><h2>Activity</h2><p class="muted">Recent transactions and data health.</p></div></div>
+        <section class="sync-grid"><article class="panel"><span>Pipeline health</span><strong id="syncHealth">—</strong><small id="lastIngestion">—</small></article><article class="panel"><span>Processed</span><strong id="processedCount">—</strong><small>Recent sample</small></article><article class="panel"><span>Pending</span><strong id="pendingCount">—</strong><small>Needs review</small></article><article class="panel"><span>Failures</span><strong id="failedCount">—</strong><small>Recent sample</small></article></section>
+        <section class="panel"><div class="panel-head"><div><p class="kicker">TRANSACTIONS</p><h2>Recent activity</h2></div></div><div id="activityList" class="activity-list"></div></section>
+        <section class="panel source-note"><strong>Data sources</strong><p class="muted">CDSL baseline · Gmail contract notes · NSE official closes · AMFI NAVs · best-effort live quotes.</p></section>
+      </section>
+
+      <section id="view-settings" class="view">
+        <div class="page-head"><div><p class="kicker">PREFERENCES &amp; SECURITY</p><h2>Settings</h2><p class="muted">Session, password, privacy and calculation basis.</p></div></div>
+        <section class="settings-grid">
+          <article class="panel settings-card"><div class="settings-title"><div><p class="kicker">SECURITY</p><h3>Password protection</h3></div><span class="secure-badge">Protected</span></div><p class="muted">The public URL contains only the app shell. Financial data requires a server-verified session.</p><dl class="settings-list"><div><dt>Session expires</dt><dd id="sessionExpiry">—</dd></div><div><dt>Remember device</dt><dd id="rememberState">—</dd></div><div><dt>Rate limiting</dt><dd>5 failed attempts / 15 min</dd></div></dl><button id="logoutBtn" class="danger">Lock &amp; sign out</button></article>
+          <article class="panel settings-card"><div class="settings-title"><div><p class="kicker">PASSWORD</p><h3>Change password</h3></div></div><p class="muted">Use a unique password of at least 12 characters. Updating it invalidates other sessions.</p><button id="changePasswordBtn" class="primary">Change password</button><p id="passwordChangeStatus" class="form-status hidden"></p></article>
+          <article class="panel settings-card"><div class="settings-title"><div><p class="kicker">CALCULATIONS</p><h3>Portfolio basis</h3></div></div><div id="settingsBasis" class="basis-copy"></div></article>
+          <article class="panel settings-card"><div class="settings-title"><div><p class="kicker">PRIVACY</p><h3>What is public?</h3></div></div><p class="muted">Only static interface code is public on GitHub Pages. Holdings, values, transactions, password hash, Gmail data and backend credentials are not published there.</p></article>
+        </section>
+      </section>
+    </div>
+
+    <nav class="mobile-nav">
+      <button class="active" data-nav="overview"><span>⌂</span><small>Overview</small></button><button data-nav="stocks"><span>↗</span><small>Stocks</small></button><button data-nav="funds"><span>MF</span><small>Funds</small></button><button data-nav="activity"><span>≡</span><small>Activity</small></button><button data-nav="settings"><span>⚙</span><small>Settings</small></button>
+    </nav>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="app.js" defer></script>
+</body>
+</html>
