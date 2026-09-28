@@ -1,0 +1,9 @@
+{
+  "name": "Money OS",
+  "short_name": "Money OS",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0b0d10",
+  "theme_color": "#0b0d10",
+  "description": "Private portfolio tracker for Indian stocks and mutual funds"
+}
