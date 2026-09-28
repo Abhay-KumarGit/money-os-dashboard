@@ -2,8 +2,12 @@
   "name": "Money OS",
   "short_name": "Money OS",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#0b0d10",
-  "theme_color": "#0b0d10",
-  "description": "Private portfolio tracker for Indian stocks and mutual funds"
+  "background_color": "#0a0d12",
+  "theme_color": "#0a0d12",
+  "description": "Password-protected personal portfolio dashboard for Indian investments",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
 }
