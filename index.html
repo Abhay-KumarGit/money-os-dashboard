@@ -133,6 +133,17 @@
     </nav>
   </div>
 
+  <dialog id="passwordDialog" class="password-dialog">
+    <form id="passwordForm" method="dialog">
+      <div class="dialog-head"><div><p class="kicker">SECURITY</p><h3>Change password</h3></div><button id="closePasswordDialog" class="icon-close" value="cancel" aria-label="Close">×</button></div>
+      <label class="field"><span>New password</span><input id="newPassword" type="password" autocomplete="new-password" minlength="12" maxlength="256" required></label>
+      <label class="field"><span>Confirm password</span><input id="confirmPassword" type="password" autocomplete="new-password" minlength="12" maxlength="256" required></label>
+      <p class="muted small">Minimum 12 characters. Changing it invalidates other sessions.</p>
+      <div class="dialog-actions"><button class="secondary" value="cancel">Cancel</button><button id="savePasswordBtn" class="primary" type="submit" value="default">Update password</button></div>
+      <p id="dialogPasswordStatus" class="form-status hidden"></p>
+    </form>
+  </dialog>
+
   <div id="toast" class="toast hidden"></div>
   <script src="app.js" defer></script>
 </body>
