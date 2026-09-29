@@ -171,6 +171,8 @@ canvas{display:block;width:100%;height:250px}
 .page-total{text-align:right;display:grid;gap:3px}
 .page-total span{font-size:11px;color:var(--muted)}
 .page-total strong{font-size:27px;letter-spacing:-.03em}
+.basis-scope-notice{margin:-4px 0 12px;padding:12px 14px;border:1px solid rgba(242,189,93,.22);background:rgba(242,189,93,.06);border-radius:12px;color:#b7c0cc;font-size:12px;line-height:1.55}
+.basis-scope-notice strong{color:var(--warning)}
 .mini-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
 .mini-metrics article{padding:16px;display:grid;gap:8px}
 .mini-metrics span{color:var(--muted);font-size:12px}
