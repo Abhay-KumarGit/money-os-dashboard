@@ -65,9 +65,9 @@
         </section>
 
         <section class="metrics">
-          <article class="metric panel"><span>Invested basis</span><strong id="totalCost">—</strong><small>Tracked cost basis</small></article>
-          <article class="metric panel"><span>Unrealized P&amp;L</span><strong id="unrealized">—</strong><small id="unrealizedPct">—</small></article>
-          <article class="metric panel"><span>Realized P&amp;L</span><strong id="realized">—</strong><small>Since baseline</small></article>
+          <article class="metric panel"><span>Tracked basis</span><strong id="totalCost">—</strong><small>Not necessarily original invested cost</small></article>
+          <article class="metric panel"><span>Tracked change</span><strong id="unrealized">—</strong><small id="unrealizedPct">—</small></article>
+          <article class="metric panel"><span>Realized since baseline</span><strong id="realized">—</strong><small>Since 31 Aug 2026</small></article>
           <article class="metric panel"><span>NIFTY 50</span><strong id="niftyDay">—</strong><small id="niftyDate">Latest move</small></article>
         </section>
 
@@ -97,20 +97,21 @@
 
       <section id="view-stocks" class="view">
         <div class="page-head"><div><p class="kicker">EQUITIES &amp; ETFs</p><h2>Stocks</h2><p id="stocksSubtitle" class="muted">—</p></div><div class="page-total"><span>Market value</span><strong id="stocksPageValue">—</strong></div></div>
-        <section class="mini-metrics"><article class="panel"><span>Invested basis</span><strong id="stocksCost">—</strong></article><article class="panel"><span>Unrealized P&amp;L</span><strong id="stocksUnrealized">—</strong></article><article class="panel"><span>Realized P&amp;L</span><strong id="stocksRealized">—</strong></article></section>
+        <div class="basis-scope-notice" role="note"><strong>Cost-basis scope:</strong> Older equity holdings currently use their 31 Aug 2026 CDSL market value as the opening basis. The figures below therefore show tracked change, not lifetime investment profit.</div>
+        <section class="mini-metrics"><article class="panel"><span>Tracked basis</span><strong id="stocksCost">—</strong><small>Opening baseline + verified later buys</small></article><article class="panel"><span>Tracked change</span><strong id="stocksUnrealized">—</strong><small>Not lifetime P&amp;L</small></article><article class="panel"><span>Realized since baseline</span><strong id="stocksRealized">—</strong><small>Since 31 Aug 2026</small></article></section>
         <section class="panel holdings-panel">
           <div class="toolbar"><label class="search"><span>⌕</span><input id="stockSearch" type="search" placeholder="Search stocks"></label><select id="stockSort"><option value="value">Value</option><option value="pnl">P&amp;L</option><option value="day">Today</option><option value="name">Name</option></select></div>
-          <div class="list-head stock-grid"><span>Holding</span><span>Qty</span><span>Avg / LTP</span><span>Value</span><span>Today</span><span>P&amp;L</span></div>
+          <div class="list-head stock-grid"><span>Holding</span><span>Qty</span><span>Basis / LTP</span><span>Value</span><span>Today</span><span>Tracked change</span></div>
           <div id="stockList" class="asset-list"></div>
         </section>
       </section>
 
       <section id="view-funds" class="view">
         <div class="page-head"><div><p class="kicker">MUTUAL FUNDS</p><h2>Mutual Funds</h2><p id="fundsSubtitle" class="muted">—</p></div><div class="page-total"><span>Market value</span><strong id="fundsPageValue">—</strong></div></div>
-        <section class="mini-metrics"><article class="panel"><span>Invested basis</span><strong id="fundsCost">—</strong></article><article class="panel"><span>Unrealized P&amp;L</span><strong id="fundsUnrealized">—</strong></article><article class="panel"><span>Realized P&amp;L</span><strong id="fundsRealized">—</strong></article></section>
+        <section class="mini-metrics"><article class="panel"><span>Tracked basis</span><strong id="fundsCost">—</strong></article><article class="panel"><span>Tracked change</span><strong id="fundsUnrealized">—</strong></article><article class="panel"><span>Realized since baseline</span><strong id="fundsRealized">—</strong></article></section>
         <section class="panel holdings-panel">
           <div class="toolbar"><label class="search"><span>⌕</span><input id="fundSearch" type="search" placeholder="Search mutual funds"></label><select id="fundSort"><option value="value">Value</option><option value="pnl">P&amp;L</option><option value="name">Name</option></select></div>
-          <div class="list-head fund-grid"><span>Fund</span><span>Units</span><span>Avg / NAV</span><span>Value</span><span>P&amp;L</span></div>
+          <div class="list-head fund-grid"><span>Fund</span><span>Units</span><span>Basis / NAV</span><span>Value</span><span>Tracked change</span></div>
           <div id="fundList" class="asset-list"></div>
         </section>
       </section>
