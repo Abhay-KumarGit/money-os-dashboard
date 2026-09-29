@@ -36,6 +36,11 @@
       </button>
       <div class="top-actions">
         <div id="syncPill" class="sync-pill"><span class="dot"></span><span>Synced</span></div>
+        <button id="privacyToggle" class="secondary privacy-toggle" type="button" aria-pressed="false" aria-label="Hide financial values" title="Hide financial values">
+          <svg class="privacy-icon privacy-icon-show" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.4 12s3.4-6 9.6-6 9.6 6 9.6 6-3.4 6-9.6 6-9.6-6-9.6-6Z"/><circle cx="12" cy="12" r="2.8"/></svg>
+          <svg class="privacy-icon privacy-icon-hide hidden" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18"/><path d="M10.6 6.2A11 11 0 0 1 12 6c6.2 0 9.6 6 9.6 6a16.8 16.8 0 0 1-3 3.6M6.2 6.3C3.7 8.1 2.4 12 2.4 12s3.4 6 9.6 6c1.5 0 2.8-.3 4-.8M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+          <span id="privacyToggleLabel">Hide values</span>
+        </button>
         <button id="lockBtn" class="secondary">Lock</button>
       </div>
     </header>
@@ -123,7 +128,14 @@
           <article class="panel settings-card"><div class="settings-title"><div><p class="kicker">SECURITY</p><h3>Password protection</h3></div><span class="secure-badge">Protected</span></div><p class="muted">The public URL contains only the app shell. Financial data requires a server-verified session.</p><dl class="settings-list"><div><dt>Session expires</dt><dd id="sessionExpiry">—</dd></div><div><dt>Remember device</dt><dd id="rememberState">—</dd></div><div><dt>Rate limiting</dt><dd>5 failed attempts / 15 min</dd></div></dl><button id="logoutBtn" class="danger">Lock &amp; sign out</button></article>
           <article class="panel settings-card"><div class="settings-title"><div><p class="kicker">PASSWORD</p><h3>Change password</h3></div></div><p class="muted">Use a unique password of at least 12 characters. Updating it invalidates other sessions.</p><button id="changePasswordBtn" class="primary">Change password</button><p id="passwordChangeStatus" class="form-status hidden"></p></article>
           <article class="panel settings-card"><div class="settings-title"><div><p class="kicker">CALCULATIONS</p><h3>Portfolio basis</h3></div></div><div id="settingsBasis" class="basis-copy"></div></article>
-          <article class="panel settings-card"><div class="settings-title"><div><p class="kicker">PRIVACY</p><h3>What is public?</h3></div></div><p class="muted">Only static interface code is public on GitHub Pages. Holdings, values, transactions, password hash, Gmail data and backend credentials are not published there.</p></article>
+          <article class="panel settings-card">
+            <div class="settings-title"><div><p class="kicker">PRIVACY</p><h3>Screen privacy</h3></div><span id="privacyStatus" class="privacy-status">Values visible</span></div>
+            <p class="muted">Hide portfolio amounts, quantities, prices, returns, allocation proportions and performance charts when using Money OS around other people. This is a display privacy control; authenticated data still exists in this browser session.</p>
+            <button id="privacySettingsBtn" class="secondary" type="button">Hide financial values</button>
+            <div class="privacy-divider"></div>
+            <h3 class="settings-subtitle">What is public?</h3>
+            <p class="muted">Only static interface code is public on GitHub Pages. Holdings, values, transactions, password hash, Gmail data and backend credentials are not published there.</p>
+          </article>
         </section>
       </section>
     </div>
