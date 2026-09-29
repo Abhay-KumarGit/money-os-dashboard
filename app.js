@@ -286,7 +286,7 @@ function renderAll() {
   $("totalCost").textContent = money(latest.total_cost);
   $("unrealized").textContent = signedMoney(latest.unrealized_pnl);
   $("unrealized").className = tone(latest.unrealized_pnl);
-  $("unrealizedPct").textContent = pct(metrics.total_return_pct) + " on tracked basis";
+  $("unrealizedPct").textContent = pct(metrics.total_return_pct) + " since tracked opening basis";
   $("realized").textContent = signedMoney(latest.realized_pnl);
   $("realized").className = tone(latest.realized_pnl);
 
@@ -301,7 +301,7 @@ function renderAll() {
     dayChip.className = "chip " + tone(day);
   }
 
-  $("totalReturn").textContent = pct(metrics.total_return_pct) + " tracked return";
+  $("totalReturn").textContent = pct(metrics.total_return_pct) + " tracked return since baseline";
   $("lastRefresh").textContent = dateTimeLabel(latest.updated_at);
   $("positionCount").textContent = (d.positions || []).length + " positions";
   $("niftyDay").textContent = pct(metrics.benchmark_day_pct);
@@ -385,7 +385,7 @@ function renderMovers() {
 
 function basisHtml() {
   const b = state.data?.basis || {};
-  return '<p><strong>Opening baseline:</strong> ' + escapeHtml(b.as_of || "—") + ' from CDSL CAS.</p><p>Equity P&amp;L is measured from the baseline market value where original acquisition cost is unavailable. Mutual-fund cost uses CDSL invested amount when reported; demat-held fund units without original cost use the baseline NAV.</p>';
+  return '<p><strong>Opening baseline:</strong> ' + escapeHtml(b.as_of || "—") + ' from CDSL CAS.</p><p><strong>Important:</strong> for older equities, the opening basis is the market value on the baseline date, not the original purchase cost. “Tracked change” therefore measures movement since that opening basis and must not be read as lifetime profit/loss. Mutual-fund cost uses CDSL invested amount when reported; demat-held fund units without original cost use baseline NAV.</p>';
 }
 
 function renderBasis() {
@@ -413,10 +413,10 @@ function stockRow(p) {
   return '<div class="asset-row stock-grid">' +
     '<div class="holding-name" data-label="Holding"><strong>' + escapeHtml(i.symbol || i.name || "—") + '</strong><small>' + escapeHtml([i.name, i.exchange, p.price_source].filter(Boolean).join(" · ")) + '</small></div>' +
     '<div data-label="Qty">' + escapeHtml(privateNumber(p.quantity)) + '</div>' +
-    '<div data-label="Avg / LTP"><strong>' + escapeHtml(money(p.close, true)) + '</strong><small>avg ' + escapeHtml(money(p.average_cost, true)) + '</small></div>' +
+    '<div data-label="Basis / LTP"><strong>' + escapeHtml(money(p.close, true)) + '</strong><small>basis ' + escapeHtml(money(p.average_cost, true)) + '</small></div>' +
     '<div data-label="Value"><strong>' + escapeHtml(money(p.market_value)) + '</strong><small>' + escapeHtml(dateLabel(p.price_date)) + '</small></div>' +
     '<div data-label="Today" class="' + tone(p.day_change_pct) + '"><strong>' + escapeHtml(pct(p.day_change_pct)) + '</strong><small>' + (p.day_change == null ? "—" : escapeHtml(signedMoney(p.day_change))) + '</small></div>' +
-    '<div data-label="P&L" class="' + tone(p.unrealized_pnl) + '"><strong>' + escapeHtml(signedMoney(p.unrealized_pnl)) + '</strong><small>' + escapeHtml(pct(p.return_pct)) + '</small></div>' +
+    '<div data-label="Tracked change" class="' + tone(p.unrealized_pnl) + '"><strong>' + escapeHtml(signedMoney(p.unrealized_pnl)) + '</strong><small>' + escapeHtml(pct(p.return_pct)) + '</small></div>' +
   '</div>';
 }
 
@@ -425,7 +425,7 @@ function renderStocks() {
   const items = (d.positions || []).filter((p) => ["EQUITY", "ETF"].includes(p.instruments?.asset_type));
   const m = d.metrics?.stocks || {};
   $("stocksPageValue").textContent = money(m.value);
-  $("stocksSubtitle").textContent = (m.count || 0) + " holdings · " + pct(m.cost ? num(m.unrealized_pnl) / num(m.cost) * 100 : null) + " tracked return";
+  $("stocksSubtitle").textContent = (m.count || 0) + " holdings · " + pct(m.cost ? num(m.unrealized_pnl) / num(m.cost) * 100 : null) + " tracked change since 31 Aug 2026";
   $("stocksCost").textContent = money(m.cost);
   $("stocksUnrealized").textContent = signedMoney(m.unrealized_pnl);
   $("stocksUnrealized").className = tone(m.unrealized_pnl);
@@ -441,9 +441,9 @@ function fundRow(p) {
   return '<div class="asset-row fund-grid">' +
     '<div class="holding-name" data-label="Fund"><strong>' + escapeHtml(i.name || i.scheme_code || "Mutual fund") + '</strong><small>' + escapeHtml(["AMFI " + (i.scheme_code || ""), p.price_source].filter(Boolean).join(" · ")) + '</small></div>' +
     '<div data-label="Units">' + escapeHtml(privateNumber(p.quantity)) + '</div>' +
-    '<div data-label="Avg / NAV"><strong>' + escapeHtml(money(p.close, true)) + '</strong><small>avg ' + escapeHtml(money(p.average_cost, true)) + '</small></div>' +
+    '<div data-label="Basis / NAV"><strong>' + escapeHtml(money(p.close, true)) + '</strong><small>basis ' + escapeHtml(money(p.average_cost, true)) + '</small></div>' +
     '<div data-label="Value"><strong>' + escapeHtml(money(p.market_value)) + '</strong><small>NAV ' + escapeHtml(dateLabel(p.price_date)) + '</small></div>' +
-    '<div data-label="P&L" class="' + tone(p.unrealized_pnl) + '"><strong>' + escapeHtml(signedMoney(p.unrealized_pnl)) + '</strong><small>' + escapeHtml(pct(p.return_pct)) + '</small></div>' +
+    '<div data-label="Tracked change" class="' + tone(p.unrealized_pnl) + '"><strong>' + escapeHtml(signedMoney(p.unrealized_pnl)) + '</strong><small>' + escapeHtml(pct(p.return_pct)) + '</small></div>' +
   '</div>';
 }
 
@@ -452,7 +452,7 @@ function renderFunds() {
   const items = (d.positions || []).filter((p) => p.instruments?.asset_type === "MF");
   const m = d.metrics?.mutual_funds || {};
   $("fundsPageValue").textContent = money(m.value);
-  $("fundsSubtitle").textContent = (m.count || 0) + " funds · " + pct(m.cost ? num(m.unrealized_pnl) / num(m.cost) * 100 : null) + " tracked return";
+  $("fundsSubtitle").textContent = (m.count || 0) + " funds · " + pct(m.cost ? num(m.unrealized_pnl) / num(m.cost) * 100 : null) + " tracked change";
   $("fundsCost").textContent = money(m.cost);
   $("fundsUnrealized").textContent = signedMoney(m.unrealized_pnl);
   $("fundsUnrealized").className = tone(m.unrealized_pnl);
