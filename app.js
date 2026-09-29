@@ -3,13 +3,19 @@ const AUTH_URL = "https://epyixyfcwdpkauenljle.supabase.co/functions/v1/auth";
 const SESSION_KEY = "moneyos.session";
 const LEGACY_KEY = "moneyos.apiToken";
 const REMEMBER_KEY = "moneyos.remember";
+const PRIVACY_KEY = "moneyos.privacyMask";
+const MASK_TEXT = "••••••";
 
 const $ = (id) => document.getElementById(id);
 const money0 = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
 const money2 = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const number4 = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 4 });
 
-let state = { data: null, view: "overview" };
+let state = {
+  data: null,
+  view: "overview",
+  masked: localStorage.getItem(PRIVACY_KEY) === "1"
+};
 
 function num(v) {
   const n = Number(v ?? 0);
@@ -17,22 +23,33 @@ function num(v) {
 }
 
 function money(v, detailed = false) {
+  if (state.masked) return MASK_TEXT;
   return (detailed ? money2 : money0).format(num(v));
 }
 
 function signedMoney(v, detailed = false) {
+  if (state.masked) return MASK_TEXT;
   const n = num(v);
-  return (n >= 0 ? "+" : "−") + money(Math.abs(n), detailed);
+  return (n >= 0 ? "+" : "−") + (detailed ? money2 : money0).format(Math.abs(n));
 }
 
 function pct(v, digits = 2) {
+  if (state.masked) return "••••";
   if (v === null || v === undefined || !Number.isFinite(Number(v))) return "—";
   const n = Number(v);
   return (n >= 0 ? "+" : "") + n.toFixed(digits) + "%";
 }
 
+function privateNumber(v, formatter = number4) {
+  return state.masked ? "••••" : formatter.format(num(v));
+}
+
+function privateShare(v, digits = 1) {
+  return state.masked ? "••••" : num(v).toFixed(digits) + "%";
+}
+
 function tone(v) {
-  if (v === null || v === undefined) return "neutral";
+  if (state.masked || v === null || v === undefined) return "neutral";
   return num(v) >= 0 ? "positive" : "negative";
 }
 
@@ -83,6 +100,36 @@ function setFormStatus(el, message, ok) {
   el.textContent = message;
   el.className = "form-status " + (ok ? "success-text" : "error");
   el.classList.remove("hidden");
+}
+
+function updatePrivacyControls() {
+  const masked = state.masked;
+  const topButton = $("privacyToggle");
+  const settingsButton = $("privacySettingsBtn");
+  const status = $("privacyStatus");
+  const label = $("privacyToggleLabel");
+
+  if (topButton) {
+    topButton.setAttribute("aria-pressed", String(masked));
+    topButton.setAttribute("aria-label", masked ? "Show financial values" : "Hide financial values");
+    topButton.title = masked ? "Show financial values" : "Hide financial values";
+    topButton.querySelector(".privacy-icon-show")?.classList.toggle("hidden", masked);
+    topButton.querySelector(".privacy-icon-hide")?.classList.toggle("hidden", !masked);
+  }
+  if (label) label.textContent = masked ? "Show values" : "Hide values";
+  if (settingsButton) settingsButton.textContent = masked ? "Show financial values" : "Hide financial values";
+  if (status) {
+    status.textContent = masked ? "Values hidden" : "Values visible";
+    status.classList.toggle("active", masked);
+  }
+}
+
+function togglePrivacy() {
+  state.masked = !state.masked;
+  localStorage.setItem(PRIVACY_KEY, state.masked ? "1" : "0");
+  updatePrivacyControls();
+  if (state.data) renderAll();
+  showToast(state.masked ? "Financial values hidden" : "Financial values visible");
 }
 
 function getSession() {
@@ -229,6 +276,7 @@ function renderAll() {
   const d = state.data;
   if (!d?.latest) return;
 
+  updatePrivacyControls();
   const latest = d.latest;
   const metrics = d.metrics || {};
   const stocks = metrics.stocks || {};
@@ -289,6 +337,9 @@ function renderAllocation() {
   const allocations = (state.data?.metrics?.allocation || []).filter((x) => num(x.value) > 0);
   const total = allocations.reduce((sum, x) => sum + num(x.value), 0);
   $("allocationTotal").textContent = money(total);
+  if (state.masked) {
+    $("donut").style.background = "var(--surface-2)";
+  }
 
   const colors = {
     stocks: "var(--asset-stock)",
@@ -304,11 +355,13 @@ function renderAllocation() {
     segments.push((colors[a.key] || "var(--asset-other)") + " " + cursor.toFixed(2) + "% " + next.toFixed(2) + "%");
     cursor = next;
   });
-  $("donut").style.background = segments.length ? "conic-gradient(" + segments.join(",") + ")" : "var(--surface-2)";
+  if (!state.masked) {
+    $("donut").style.background = segments.length ? "conic-gradient(" + segments.join(",") + ")" : "var(--surface-2)";
+  }
 
   $("allocationLegend").innerHTML = allocations.map((a) => {
     const share = total ? num(a.value) / total * 100 : 0;
-    return '<div class="legend-row"><span class="legend-dot" style="background:' + (colors[a.key] || "var(--asset-other)") + '"></span><div><strong>' + escapeHtml(a.label) + '</strong><small>' + share.toFixed(1) + "% · " + escapeHtml(money(a.value)) + "</small></div></div>";
+    return '<div class="legend-row"><span class="legend-dot" style="background:' + (colors[a.key] || "var(--asset-other)") + '"></span><div><strong>' + escapeHtml(a.label) + '</strong><small>' + escapeHtml(privateShare(share)) + " · " + escapeHtml(money(a.value)) + "</small></div></div>";
   }).join("");
 }
 
@@ -359,7 +412,7 @@ function stockRow(p) {
   const i = p.instruments || {};
   return '<div class="asset-row stock-grid">' +
     '<div class="holding-name" data-label="Holding"><strong>' + escapeHtml(i.symbol || i.name || "—") + '</strong><small>' + escapeHtml([i.name, i.exchange, p.price_source].filter(Boolean).join(" · ")) + '</small></div>' +
-    '<div data-label="Qty">' + escapeHtml(number4.format(num(p.quantity))) + '</div>' +
+    '<div data-label="Qty">' + escapeHtml(privateNumber(p.quantity)) + '</div>' +
     '<div data-label="Avg / LTP"><strong>' + escapeHtml(money(p.close, true)) + '</strong><small>avg ' + escapeHtml(money(p.average_cost, true)) + '</small></div>' +
     '<div data-label="Value"><strong>' + escapeHtml(money(p.market_value)) + '</strong><small>' + escapeHtml(dateLabel(p.price_date)) + '</small></div>' +
     '<div data-label="Today" class="' + tone(p.day_change_pct) + '"><strong>' + escapeHtml(pct(p.day_change_pct)) + '</strong><small>' + (p.day_change == null ? "—" : escapeHtml(signedMoney(p.day_change))) + '</small></div>' +
@@ -387,7 +440,7 @@ function fundRow(p) {
   const i = p.instruments || {};
   return '<div class="asset-row fund-grid">' +
     '<div class="holding-name" data-label="Fund"><strong>' + escapeHtml(i.name || i.scheme_code || "Mutual fund") + '</strong><small>' + escapeHtml(["AMFI " + (i.scheme_code || ""), p.price_source].filter(Boolean).join(" · ")) + '</small></div>' +
-    '<div data-label="Units">' + escapeHtml(number4.format(num(p.quantity))) + '</div>' +
+    '<div data-label="Units">' + escapeHtml(privateNumber(p.quantity)) + '</div>' +
     '<div data-label="Avg / NAV"><strong>' + escapeHtml(money(p.close, true)) + '</strong><small>avg ' + escapeHtml(money(p.average_cost, true)) + '</small></div>' +
     '<div data-label="Value"><strong>' + escapeHtml(money(p.market_value)) + '</strong><small>NAV ' + escapeHtml(dateLabel(p.price_date)) + '</small></div>' +
     '<div data-label="P&L" class="' + tone(p.unrealized_pnl) + '"><strong>' + escapeHtml(signedMoney(p.unrealized_pnl)) + '</strong><small>' + escapeHtml(pct(p.return_pct)) + '</small></div>' +
@@ -414,7 +467,7 @@ function transactionRow(t) {
   const i = t.instruments || {};
   const title = i.symbol || i.name || "Instrument";
   const label = t.side === "BUY" ? "Bought" : "Sold";
-  return '<div class="activity-row"><div class="activity-icon ' + (t.side === "BUY" ? "buy" : "sell") + '">' + (t.side === "BUY" ? "B" : "S") + '</div><div class="activity-main"><strong>' + escapeHtml(label + " " + title) + '</strong><small>' + escapeHtml(number4.format(num(t.quantity))) + " units @ " + escapeHtml(money(t.price, true)) + ' · ' + escapeHtml(t.broker || t.source) + '</small></div><time>' + escapeHtml(dateLabel(t.trade_date)) + '</time></div>';
+  return '<div class="activity-row"><div class="activity-icon ' + (t.side === "BUY" ? "buy" : "sell") + '">' + (t.side === "BUY" ? "B" : "S") + '</div><div class="activity-main"><strong>' + escapeHtml(label + " " + title) + '</strong><small>' + escapeHtml(privateNumber(t.quantity)) + " units @ " + escapeHtml(money(t.price, true)) + ' · ' + escapeHtml(t.broker || t.source) + '</small></div><time>' + escapeHtml(dateLabel(t.trade_date)) + '</time></div>';
 }
 
 function renderActivity() {
@@ -441,6 +494,7 @@ function renderSettings() {
   const s = state.data?.security || {};
   $("sessionExpiry").textContent = s.session_expires_at ? dateTimeLabel(s.session_expires_at) : "Legacy session";
   $("rememberState").textContent = isRemembered() ? "On · 7 days" : "Off · this tab";
+  updatePrivacyControls();
 }
 
 function drawChart() {
@@ -456,6 +510,27 @@ function drawChart() {
   const ctx = canvas.getContext("2d");
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, width, height);
+
+  if (state.masked) {
+    ctx.fillStyle = "#11161d";
+    ctx.fillRect(0, 0, width, height);
+    ctx.strokeStyle = "#202936";
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 4; i++) {
+      const y = 24 + i * (height - 48) / 3;
+      ctx.beginPath();
+      ctx.moveTo(16, y);
+      ctx.lineTo(width - 16, y);
+      ctx.stroke();
+    }
+    ctx.fillStyle = "#8b96a5";
+    ctx.font = "600 14px system-ui";
+    ctx.textAlign = "center";
+    ctx.fillText("Portfolio values hidden", width / 2, height / 2);
+    ctx.textAlign = "start";
+    $("historyRange").textContent = "Hidden";
+    return;
+  }
 
   if (history.length < 2) {
     ctx.fillStyle = "#7f8996";
@@ -548,8 +623,10 @@ function bindEvents() {
   $("unlockBtn").addEventListener("click", unlock);
   $("loginPassword").addEventListener("keydown", (e) => { if (e.key === "Enter") unlock(); });
   document.querySelectorAll("[data-nav]").forEach((el) => el.addEventListener("click", () => navigate(el.dataset.nav)));
-  $("lockBtn").addEventListener("click", () => { clearSession(); showLocked(); });
-  $("logoutBtn").addEventListener("click", () => { clearSession(); showLocked(); });
+  $("lockBtn").addEventListener("click", () => { clearSession(); state.data = null; window.location.reload(); });
+  $("logoutBtn").addEventListener("click", () => { clearSession(); state.data = null; window.location.reload(); });
+  $("privacyToggle").addEventListener("click", togglePrivacy);
+  $("privacySettingsBtn").addEventListener("click", togglePrivacy);
   $("stockSearch").addEventListener("input", renderStocks);
   $("stockSort").addEventListener("change", renderStocks);
   $("fundSearch").addEventListener("input", renderFunds);
@@ -574,6 +651,7 @@ function bindEvents() {
 
 async function init() {
   bindEvents();
+  updatePrivacyControls();
   $("rememberDevice").checked = localStorage.getItem(REMEMBER_KEY) !== "0";
 
   let session = getSession();
