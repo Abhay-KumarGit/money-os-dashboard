@@ -1,4 +1,4 @@
-const CACHE = "money-os-v6";
+const CACHE = "money-os-v7";
 const ASSETS = ["./","./index.html","./app.js","./styles.css","./manifest.webmanifest","./icon.svg"];
 
 self.addEventListener("install", (event) => {
@@ -16,15 +16,21 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (event.request.method !== "GET" || url.origin !== self.location.origin) return;
-  if (event.request.mode === "navigate") {
-    event.respondWith(fetch(event.request).catch(() => caches.match("./index.html")));
-    return;
-  }
+
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request).then((response) => {
-      const copy = response.clone();
-      caches.open(CACHE).then((cache) => cache.put(event.request, copy));
-      return response;
-    }))
+    fetch(event.request)
+      .then((response) => {
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE).then((cache) => cache.put(event.request, copy));
+        }
+        return response;
+      })
+      .catch(async () => {
+        const cached = await caches.match(event.request);
+        if (cached) return cached;
+        if (event.request.mode === "navigate") return caches.match("./index.html");
+        throw new Error("Offline and asset not cached");
+      })
   );
 });
