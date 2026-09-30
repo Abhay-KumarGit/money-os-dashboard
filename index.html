@@ -36,12 +36,15 @@
       </button>
       <div class="top-actions">
         <div id="syncPill" class="sync-pill"><span class="dot"></span><span>Synced</span></div>
-        <button id="privacyToggle" class="secondary privacy-toggle" type="button" aria-pressed="false" aria-label="Hide financial values" title="Hide financial values">
-          <svg class="privacy-icon privacy-icon-show" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.4 12s3.4-6 9.6-6 9.6 6 9.6 6-3.4 6-9.6 6-9.6-6-9.6-6Z"/><circle cx="12" cy="12" r="2.8"/></svg>
-          <svg class="privacy-icon privacy-icon-hide hidden" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18"/><path d="M10.6 6.2A11 11 0 0 1 12 6c6.2 0 9.6 6 9.6 6a16.8 16.8 0 0 1-3 3.6M6.2 6.3C3.7 8.1 2.4 12 2.4 12s3.4 6 9.6 6c1.5 0 2.8-.3 4-.8M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
-          <span id="privacyToggleLabel">Hide values</span>
+        <button id="privacyToggle" class="secondary top-action privacy-toggle" type="button" aria-pressed="false" aria-label="Hide financial values" title="Hide financial values">
+          <svg class="top-action-icon privacy-icon privacy-icon-show" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.4 12s3.4-6 9.6-6 9.6 6 9.6 6-3.4 6-9.6 6-9.6-6-9.6-6Z"/><circle cx="12" cy="12" r="2.8"/></svg>
+          <svg class="top-action-icon privacy-icon privacy-icon-hide hidden" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18"/><path d="M10.6 6.2A11 11 0 0 1 12 6c6.2 0 9.6 6 9.6 6a16.8 16.8 0 0 1-3 3.6M6.2 6.3C3.7 8.1 2.4 12 2.4 12s3.4 6 9.6 6c1.5 0 2.8-.3 4-.8M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+          <span id="privacyToggleLabel" class="top-action-label">Hide values</span>
         </button>
-        <button id="lockBtn" class="secondary">Lock</button>
+        <button id="lockBtn" class="secondary top-action" type="button" aria-label="Lock Money OS" title="Lock Money OS">
+          <svg class="top-action-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          <span class="top-action-label">Lock</span>
+        </button>
       </div>
     </header>
 
@@ -51,22 +54,33 @@
       <button data-nav="funds">Mutual Funds</button>
       <button data-nav="activity">Activity</button>
       <button data-nav="settings">Settings</button>
+      <button data-nav="daily">Daily</button>
     </nav>
 
     <div class="content">
       <section id="view-overview" class="view active">
         <section class="hero panel">
-          <div>
+          <div class="hero-main">
             <p class="kicker">TOTAL PORTFOLIO</p>
             <div id="totalValue" class="hero-value">—</div>
-            <div class="hero-meta"><span id="dayChange" class="chip neutral">— today</span><span id="totalReturn" class="muted">— overall</span></div>
+            <div class="hero-performance" aria-label="Portfolio performance summary">
+              <div class="performance-item">
+                <span class="performance-label">Today</span>
+                <div class="performance-value-row"><strong id="dayChange" class="neutral">—</strong><small id="dayChangePct" class="neutral">—</small></div>
+              </div>
+              <div class="performance-divider" aria-hidden="true"></div>
+              <div class="performance-item">
+                <span class="performance-label">Since baseline</span>
+                <div class="performance-value-row"><strong id="totalReturn" class="neutral">—</strong><small>tracked return</small></div>
+              </div>
+            </div>
           </div>
           <div class="hero-side"><span class="tiny muted">LAST REFRESH</span><strong id="lastRefresh">—</strong><span id="positionCount" class="subtle">— positions</span></div>
         </section>
 
         <section class="metrics">
-          <article class="metric panel"><span>Tracked basis</span><strong id="totalCost">—</strong><small>Not necessarily original invested cost</small></article>
-          <article class="metric panel"><span>Tracked change</span><strong id="unrealized">—</strong><small id="unrealizedPct">—</small></article>
+          <article class="metric panel"><span>Portfolio basis</span><strong id="totalCost">—</strong><small>31 Aug baseline + verified later buys</small></article>
+          <article class="metric panel"><span>Since baseline</span><strong id="unrealized">—</strong><small id="unrealizedPct">—</small></article>
           <article class="metric panel"><span>Realized since baseline</span><strong id="realized">—</strong><small>Since 31 Aug 2026</small></article>
           <article class="metric panel"><span>NIFTY 50</span><strong id="niftyDay">—</strong><small id="niftyDate">Latest move</small></article>
         </section>
@@ -139,10 +153,54 @@
           </article>
         </section>
       </section>
+
+      <section id="view-daily" class="view">
+        <div class="page-head">
+          <div><p class="kicker">DAILY PORTFOLIO BRIEF</p><h2>Recommendations</h2><p class="muted">Saved automatically by your Portfolio Daily Tracker.</p></div>
+          <div class="page-total"><span>Latest brief</span><strong id="dailyLatestDate">—</strong></div>
+        </div>
+
+        <section id="dailyEmpty" class="panel daily-empty">
+          <div class="daily-empty-icon" aria-hidden="true">✦</div>
+          <div><h3>No saved brief yet</h3><p>The scheduled tracker will save the next daily recommendation here after it runs.</p></div>
+        </section>
+
+        <div id="dailyContent" class="hidden">
+          <section class="panel daily-featured">
+            <div class="daily-featured-head">
+              <div><p class="kicker">LATEST</p><h3 id="dailyTitle">Daily portfolio brief</h3></div>
+              <span id="dailyTradingStatus" class="daily-status">—</span>
+            </div>
+            <p id="dailySummary" class="daily-summary"></p>
+            <div class="daily-meta"><span id="dailyGeneratedAt">—</span><span>Portfolio Daily Tracker</span></div>
+          </section>
+
+          <section class="daily-grid">
+            <article class="panel daily-card">
+              <div class="daily-card-head"><span class="daily-card-icon">✓</span><div><p class="kicker">NEXT STEPS</p><h3>Action queue</h3></div></div>
+              <div id="dailyActions" class="daily-list"></div>
+            </article>
+            <article class="panel daily-card">
+              <div class="daily-card-head"><span class="daily-card-icon">↗</span><div><p class="kicker">CONTEXT</p><h3>Highlights & risks</h3></div></div>
+              <div id="dailyHighlights" class="daily-list"></div>
+            </article>
+          </section>
+
+          <section class="panel daily-history-panel">
+            <div class="panel-head"><div><p class="kicker">HISTORY</p><h2>Previous briefs</h2></div><span class="muted">Last 30 days</span></div>
+            <div id="dailyHistory" class="daily-history"></div>
+          </section>
+        </div>
+      </section>
     </div>
 
-    <nav class="mobile-nav">
-      <button class="active" data-nav="overview"><span>⌂</span><small>Overview</small></button><button data-nav="stocks"><span>↗</span><small>Stocks</small></button><button data-nav="funds"><span>MF</span><small>Funds</small></button><button data-nav="activity"><span>≡</span><small>Activity</small></button><button data-nav="settings"><span>⚙</span><small>Settings</small></button>
+    <nav class="mobile-nav" aria-label="Primary">
+      <button class="active" data-nav="overview"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-6h5v6"/></svg><small>Overview</small></button>
+      <button data-nav="stocks"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m4 17 5-5 3 3 7-8"/><path d="M15 7h4v4"/></svg><small>Stocks</small></button>
+      <button data-nav="funds"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9h9"/><path d="M20.2 15A9 9 0 1 1 9 3.5"/></svg><small>Funds</small></button>
+      <button data-nav="activity"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg><small>Activity</small></button>
+      <button data-nav="settings"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21h-4v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H3v-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V3h4v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1H21v4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg><small>Settings</small></button>
+      <button data-nav="daily"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.4 4.1L17.5 8.5l-4.1 1.4L12 14l-1.4-4.1-4.1-1.4 4.1-1.4L12 3Z"/><path d="m18 14 .8 2.2L21 17l-2.2.8L18 20l-.8-2.2L15 17l2.2-.8L18 14Z"/><path d="M4 15h5M4 19h8"/></svg><small>Daily</small></button>
     </nav>
   </div>
 
