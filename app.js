@@ -286,22 +286,28 @@ function renderAll() {
   $("totalCost").textContent = money(latest.total_cost);
   $("unrealized").textContent = signedMoney(latest.unrealized_pnl);
   $("unrealized").className = tone(latest.unrealized_pnl);
-  $("unrealizedPct").textContent = pct(metrics.total_return_pct) + " since tracked opening basis";
+  $("unrealizedPct").textContent = pct(metrics.total_return_pct) + " since 31 Aug 2026";
   $("realized").textContent = signedMoney(latest.realized_pnl);
   $("realized").className = tone(latest.realized_pnl);
 
   const day = latest.day_change;
   const dayPct = latest.day_change_pct;
-  const dayChip = $("dayChange");
+  const dayValue = $("dayChange");
+  const dayPctEl = $("dayChangePct");
   if (day === null || day === undefined || dayPct === null || dayPct === undefined) {
-    dayChip.textContent = "— today";
-    dayChip.className = "chip neutral";
+    dayValue.textContent = "—";
+    dayValue.className = "performance-money neutral";
+    dayPctEl.textContent = "No comparable close";
+    dayPctEl.className = "performance-pct neutral";
   } else {
-    dayChip.textContent = signedMoney(day) + "  " + pct(dayPct);
-    dayChip.className = "chip " + tone(day);
+    dayValue.textContent = signedMoney(day);
+    dayValue.className = "performance-money " + tone(day);
+    dayPctEl.textContent = pct(dayPct);
+    dayPctEl.className = "performance-pct " + tone(dayPct);
   }
 
-  $("totalReturn").textContent = pct(metrics.total_return_pct) + " tracked return since baseline";
+  $("totalReturn").textContent = pct(metrics.total_return_pct);
+  $("totalReturn").className = tone(metrics.total_return_pct);
   $("lastRefresh").textContent = dateTimeLabel(latest.updated_at);
   $("positionCount").textContent = (d.positions || []).length + " positions";
   $("niftyDay").textContent = pct(metrics.benchmark_day_pct);
@@ -325,6 +331,7 @@ function renderAll() {
   renderFunds();
   renderActivity();
   renderSettings();
+  renderRecommendations();
   drawChart();
 
   const sync = d.sync || {};
@@ -495,6 +502,82 @@ function renderSettings() {
   $("sessionExpiry").textContent = s.session_expires_at ? dateTimeLabel(s.session_expires_at) : "Legacy session";
   $("rememberState").textContent = isRemembered() ? "On · 7 days" : "Off · this tab";
   updatePrivacyControls();
+}
+
+function recommendationItem(item) {
+  if (typeof item === "string") return { title: item, detail: "", priority: "" };
+  if (!item || typeof item !== "object") return { title: "Update", detail: String(item ?? ""), priority: "" };
+  return {
+    title: item.title || item.action || item.label || item.name || "Update",
+    detail: item.detail || item.description || item.reason || item.note || "",
+    priority: String(item.priority || item.status || "").toLowerCase()
+  };
+}
+
+function recommendationRows(items, kind = "action") {
+  const rows = Array.isArray(items) ? items : [];
+  if (!rows.length) return '<div class="daily-list-empty">Nothing needs attention here.</div>';
+  return rows.map((raw) => {
+    const item = recommendationItem(raw);
+    const priorityClass = ["high", "urgent", "attention", "risk"].includes(item.priority)
+      ? "attention"
+      : ["medium", "watch", "monitor"].includes(item.priority) ? "watch" : "calm";
+    return '<div class="daily-list-item"><span class="daily-bullet ' + priorityClass + '" aria-hidden="true"></span><div><strong>' +
+      escapeHtml(item.title) + '</strong>' + (item.detail ? '<p>' + escapeHtml(item.detail) + '</p>' : '') + '</div></div>';
+  }).join("");
+}
+
+function renderRecommendations() {
+  const empty = $("dailyEmpty");
+  const content = $("dailyContent");
+  if (!empty || !content) return;
+
+  const rows = Array.isArray(state.data?.recommendations) ? state.data.recommendations : [];
+  if (state.masked) {
+    $("dailyLatestDate").textContent = "Hidden";
+    empty.classList.remove("hidden");
+    content.classList.add("hidden");
+    empty.innerHTML = '<div class="daily-empty-icon" aria-hidden="true">◉</div><div><h3>Daily brief hidden</h3><p>Recommendations can contain portfolio values, so they stay hidden while screen privacy is on.</p></div>';
+    return;
+  }
+
+  if (!rows.length) {
+    $("dailyLatestDate").textContent = "—";
+    empty.classList.remove("hidden");
+    content.classList.add("hidden");
+    empty.innerHTML = '<div class="daily-empty-icon" aria-hidden="true">✦</div><div><h3>No saved brief yet</h3><p>The scheduled tracker will save the next daily recommendation here after it runs.</p></div>';
+    return;
+  }
+
+  const latest = rows[0];
+  empty.classList.add("hidden");
+  content.classList.remove("hidden");
+  $("dailyLatestDate").textContent = dateLabel(latest.recommendation_date);
+  $("dailyTitle").textContent = latest.title || "Daily portfolio brief";
+  $("dailySummary").textContent = latest.summary || "No summary was saved for this run.";
+  $("dailyGeneratedAt").textContent = "Generated " + dateTimeLabel(latest.generated_at || latest.updated_at);
+  const status = $("dailyTradingStatus");
+  status.textContent = latest.trading_day ? "Trading day" : "Non-trading day";
+  status.className = "daily-status " + (latest.trading_day ? "open" : "closed");
+
+  $("dailyActions").innerHTML = recommendationRows(latest.actions, "action");
+  const highlights = Array.isArray(latest.highlights) ? latest.highlights : [];
+  const risks = Array.isArray(latest.risks) ? latest.risks.map((x) => {
+    if (typeof x === "string") return { title: x, priority: "risk" };
+    return { ...(x || {}), priority: x?.priority || "risk" };
+  }) : [];
+  $("dailyHighlights").innerHTML = recommendationRows([...highlights, ...risks], "context");
+
+  const previous = rows.slice(1);
+  $("dailyHistory").innerHTML = previous.length ? previous.map((r) => {
+    const actions = Array.isArray(r.actions) ? r.actions : [];
+    const statusLabel = r.trading_day ? "Trading day" : "Non-trading day";
+    return '<details class="daily-history-item"><summary><div><strong>' + escapeHtml(dateLabel(r.recommendation_date)) +
+      '</strong><span>' + escapeHtml(r.title || "Daily portfolio brief") + '</span></div><small>' +
+      escapeHtml(statusLabel + " · " + actions.length + (actions.length === 1 ? " action" : " actions")) +
+      '</small></summary><div class="daily-history-body"><p>' + escapeHtml(r.summary || "No summary saved.") +
+      '</p><div class="daily-list">' + recommendationRows(actions, "action") + '</div></div></details>';
+  }).join("") : '<div class="daily-list-empty history-empty">Earlier briefs will appear here automatically.</div>';
 }
 
 function drawChart() {
