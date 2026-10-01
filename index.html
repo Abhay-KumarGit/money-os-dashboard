@@ -150,17 +150,22 @@
           <article class="panel settings-card"><div class="settings-title"><div><p class="kicker">SECURITY</p><h3>Password protection</h3></div><span class="secure-badge">Protected</span></div><p class="muted">The public URL contains only the app shell. Financial data requires a server-verified session.</p><dl class="settings-list"><div><dt>Session expires</dt><dd id="sessionExpiry">—</dd></div><div><dt>Remember device</dt><dd id="rememberState">—</dd></div><div><dt>Rate limiting</dt><dd>5 failed attempts / 15 min</dd></div></dl><button id="logoutBtn" class="danger">Lock &amp; sign out</button></article>
           <article class="panel settings-card"><div class="settings-title"><div><p class="kicker">PASSWORD</p><h3>Change password</h3></div></div><p class="muted">Use a unique password of at least 12 characters. Updating it invalidates other sessions.</p><button id="changePasswordBtn" class="primary">Change password</button><p id="passwordChangeStatus" class="form-status hidden"></p></article>
           <article class="panel settings-card"><div class="settings-title"><div><p class="kicker">CALCULATIONS</p><h3>Portfolio basis</h3></div></div><div id="settingsBasis" class="basis-copy"></div></article>
-          <article class="panel settings-card">
-            <div class="settings-title"><div><p class="kicker">PRIVACY</p><h3>Screen privacy</h3></div><span id="privacyStatus" class="privacy-status">Values visible</span></div>
-            <p class="muted">Hide portfolio amounts, quantities, prices, returns, allocation proportions and performance charts when using Money OS around other people.</p>
-            <div class="privacy-settings-actions">
-              <button id="privacySettingsBtn" class="secondary" type="button">Hide financial values</button>
-              <button id="privacyPinSettingsBtn" class="secondary" type="button">Set privacy PIN</button>
+          <article class="panel settings-card privacy-card">
+            <div class="privacy-card-head">
+              <div class="privacy-title-row">
+                <h3>Screen privacy</h3>
+                <button class="info-button" type="button" data-info="screen-privacy" aria-label="About screen privacy">i</button>
+              </div>
+              <span id="privacyStatus" class="privacy-status">Visible</span>
             </div>
-            <p id="privacyPinHint" class="muted privacy-pin-hint">The privacy PIN is separate from your Money OS password. If you forget it, reset it using your Money OS password.</p>
-            <div class="privacy-divider"></div>
-            <h3 class="settings-subtitle">What is public?</h3>
-            <p class="muted">Only static interface code is public on GitHub Pages. Holdings, values, transactions, password hash, Gmail data and backend credentials are not published there.</p>
+            <div class="privacy-row">
+              <div><strong>Financial values</strong><small>Amounts, returns & charts</small></div>
+              <button id="privacySettingsBtn" class="secondary compact-control" type="button">Hide</button>
+            </div>
+            <div class="privacy-row">
+              <div><strong>Privacy PIN</strong><small>Separate from login</small></div>
+              <button id="privacyPinSettingsBtn" class="secondary compact-control" type="button">Set PIN</button>
+            </div>
           </article>
         </section>
       </section>
@@ -227,25 +232,29 @@
     </form>
   </dialog>
 
-  <dialog id="privacyUnlockDialog" class="password-dialog compact-dialog">
+  <dialog id="privacyUnlockDialog" class="password-dialog compact-dialog privacy-dialog">
     <form id="privacyUnlockForm">
-      <div class="dialog-head"><div><p class="kicker">SCREEN PRIVACY</p><h3>Reveal financial values</h3></div><button id="closePrivacyUnlockDialog" class="icon-close" type="button" aria-label="Close">×</button></div>
-      <p class="muted small dialog-copy">Enter your separate privacy PIN to reveal amounts and percentages.</p>
-      <label class="field"><span>Privacy PIN</span><input id="privacyUnlockPassword" type="password" inputmode="numeric" autocomplete="off" pattern="[0-9]{4,8}" minlength="4" maxlength="8" required></label>
-      <div class="dialog-actions"><button id="resetPrivacyFromUnlock" class="secondary subtle-action" type="button">Forgot PIN?</button><button id="cancelPrivacyUnlock" class="secondary" type="button">Cancel</button><button id="privacyUnlockBtn" class="primary" type="submit">Reveal values</button></div>
+      <div class="dialog-head minimal-dialog-head"><h3>Show values</h3><button id="closePrivacyUnlockDialog" class="icon-close" type="button" aria-label="Close">×</button></div>
+      <label class="field compact-field"><span>Privacy PIN</span><input id="privacyUnlockPassword" type="password" inputmode="numeric" autocomplete="off" pattern="[0-9]{4,8}" minlength="4" maxlength="8" placeholder="4–8 digits" required></label>
+      <div class="privacy-dialog-actions"><button id="resetPrivacyFromUnlock" class="text-action" type="button">Forgot PIN?</button><button id="privacyUnlockBtn" class="primary compact-primary" type="submit">Show</button></div>
+      <button id="cancelPrivacyUnlock" class="hidden" type="button" aria-hidden="true" tabindex="-1">Cancel</button>
       <p id="privacyUnlockStatus" class="form-status hidden"></p>
     </form>
   </dialog>
 
-  <dialog id="privacyPinDialog" class="password-dialog compact-dialog">
+  <dialog id="privacyPinDialog" class="password-dialog compact-dialog privacy-dialog">
     <form id="privacyPinForm">
-      <div class="dialog-head"><div><p class="kicker">SCREEN PRIVACY</p><h3 id="privacyPinDialogTitle">Create privacy PIN</h3></div><button id="closePrivacyPinDialog" class="icon-close" type="button" aria-label="Close">×</button></div>
-      <p id="privacyPinDialogCopy" class="muted small dialog-copy">Create a 4–8 digit PIN that is different from your Money OS password.</p>
-      <label class="field"><span>Money OS password</span><input id="privacyMainPassword" type="password" autocomplete="current-password" maxlength="256" required></label>
-      <label class="field"><span>New privacy PIN</span><input id="newPrivacyPin" type="password" inputmode="numeric" autocomplete="new-password" pattern="[0-9]{4,8}" minlength="4" maxlength="8" required></label>
-      <label class="field"><span>Confirm privacy PIN</span><input id="confirmPrivacyPin" type="password" inputmode="numeric" autocomplete="new-password" pattern="[0-9]{4,8}" minlength="4" maxlength="8" required></label>
-      <p class="muted small">Forgotten PINs can be reset with your Money OS password.</p>
-      <div class="dialog-actions"><button id="cancelPrivacyPin" class="secondary" type="button">Cancel</button><button id="savePrivacyPinBtn" class="primary" type="submit">Save PIN</button></div>
+      <div class="dialog-head minimal-dialog-head">
+        <div class="privacy-title-row"><h3 id="privacyPinDialogTitle">Create privacy PIN</h3><button class="info-button" type="button" data-info="privacy-pin" aria-label="About privacy PIN">i</button></div>
+        <button id="closePrivacyPinDialog" class="icon-close" type="button" aria-label="Close">×</button>
+      </div>
+      <p id="privacyPinDialogCopy" class="hidden"></p>
+      <label class="field compact-field"><span>Money OS password</span><input id="privacyMainPassword" type="password" autocomplete="current-password" maxlength="256" required></label>
+      <div class="pin-fields">
+        <label class="field compact-field"><span>New PIN</span><input id="newPrivacyPin" type="password" inputmode="numeric" autocomplete="new-password" pattern="[0-9]{4,8}" minlength="4" maxlength="8" placeholder="4–8 digits" required></label>
+        <label class="field compact-field"><span>Confirm</span><input id="confirmPrivacyPin" type="password" inputmode="numeric" autocomplete="new-password" pattern="[0-9]{4,8}" minlength="4" maxlength="8" placeholder="Repeat PIN" required></label>
+      </div>
+      <div class="privacy-dialog-actions privacy-dialog-actions-end"><button id="cancelPrivacyPin" class="text-action" type="button">Cancel</button><button id="savePrivacyPinBtn" class="primary compact-primary" type="submit">Save</button></div>
       <p id="privacyPinStatus" class="form-status hidden"></p>
     </form>
   </dialog>
