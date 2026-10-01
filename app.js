@@ -586,7 +586,7 @@ function sortedFiltered(items, search, sort) {
 function stockRow(p) {
   const i = p.instruments || {};
   return '<div class="asset-row stock-grid">' +
-    '<div class="holding-name" data-label="Holding"><strong>' + escapeHtml(i.symbol || i.name || "—") + '</strong><small>' + escapeHtml([i.name, i.exchange, p.price_source].filter(Boolean).join(" · ")) + '</small></div>' +
+    '<div class="holding-name" data-label="Holding"><strong>' + escapeHtml(i.symbol || i.name || "—") + '</strong><small>' + escapeHtml([i.name, i.exchange].filter(Boolean).join(" · ")) + '</small></div>' +
     '<div data-label="Qty">' + escapeHtml(privateNumber(p.quantity)) + '</div>' +
     '<div data-label="Basis / LTP"><strong>' + escapeHtml(money(p.close, true)) + '</strong><small>basis ' + escapeHtml(money(p.average_cost, true)) + '</small></div>' +
     '<div data-label="Value"><strong>' + escapeHtml(money(p.market_value)) + '</strong><small>' + escapeHtml(dateLabel(p.price_date)) + '</small></div>' +
@@ -614,7 +614,7 @@ function renderStocks() {
 function fundRow(p) {
   const i = p.instruments || {};
   return '<div class="asset-row fund-grid">' +
-    '<div class="holding-name" data-label="Fund"><strong>' + escapeHtml(i.name || i.scheme_code || "Mutual fund") + '</strong><small>' + escapeHtml(["AMFI " + (i.scheme_code || ""), p.price_source].filter(Boolean).join(" · ")) + '</small></div>' +
+    '<div class="holding-name" data-label="Fund"><strong>' + escapeHtml(i.name || i.scheme_code || "Mutual fund") + '</strong><small>' + escapeHtml(i.scheme_code ? "Scheme " + i.scheme_code : "Mutual fund") + '</small></div>' +
     '<div data-label="Units">' + escapeHtml(privateNumber(p.quantity)) + '</div>' +
     '<div data-label="Basis / NAV"><strong>' + escapeHtml(money(p.close, true)) + '</strong><small>basis ' + escapeHtml(money(p.average_cost, true)) + '</small></div>' +
     '<div data-label="Value"><strong>' + escapeHtml(money(p.market_value)) + '</strong><small>NAV ' + escapeHtml(dateLabel(p.price_date)) + '</small></div>' +
@@ -648,9 +648,9 @@ function transactionRow(t) {
 function renderActivity() {
   const d = state.data;
   const sync = d.sync || {};
-  $("syncHealth").textContent = sync.health === "healthy" ? "Healthy" : "Needs attention";
+  $("syncHealth").textContent = sync.health === "healthy" ? "Healthy" : "Review";
   $("syncHealth").className = sync.health === "healthy" ? "positive" : "warning";
-  $("lastIngestion").textContent = "Last event " + dateTimeLabel(sync.last_ingestion_at);
+  $("lastIngestion").textContent = sync.last_ingestion_at ? dateTimeLabel(sync.last_ingestion_at) : "No recent update";
   $("processedCount").textContent = sync.recent_processed ?? "—";
   $("pendingCount").textContent = sync.recent_pending ?? "—";
   $("failedCount").textContent = sync.recent_failed ?? "—";
@@ -660,7 +660,7 @@ function renderActivity() {
   const regular = all.filter((t) => t.source !== "CDSL_BASELINE").slice(0, 20);
   let html = regular.map(transactionRow).join("");
   if (baselineCount) {
-    html += '<div class="activity-row"><div class="activity-icon baseline">C</div><div class="activity-main"><strong>CDSL opening baseline</strong><small>' + baselineCount + ' opening positions established</small></div><time>31 Aug 2026</time></div>';
+    html += '<div class="activity-row"><div class="activity-icon baseline">B</div><div class="activity-main"><strong>Opening portfolio baseline</strong><small>' + baselineCount + ' positions established</small></div><time>31 Aug 2026</time></div>';
   }
   $("activityList").innerHTML = html || '<div class="empty-inline">No recent transactions.</div>';
 }
@@ -712,6 +712,34 @@ const INFO_COPY = {
   "market-movers": {
     title: "Market movers",
     body: "Shows the strongest and weakest daily percentage moves among holdings with comparable recent prices. It is a quick context view, not a buy or sell signal."
+  },
+  "fund-basis": {
+    title: "Tracked fund basis",
+    body: "The mutual-fund starting basis plus confirmed later purchases. Where original invested cost is unavailable, the opening baseline is used so the figure should not be read as lifetime cost."
+  },
+  "fund-change": {
+    title: "Tracked fund change",
+    body: "The difference between current mutual-fund value and the tracked basis. It measures performance since the baseline rather than lifetime profit or loss."
+  },
+  "fund-realized": {
+    title: "Realized fund P&L",
+    body: "Profit or loss from recorded mutual-fund redemptions after the baseline. Units still held remain part of tracked change."
+  },
+  "activity-status": {
+    title: "Activity status",
+    body: "A compact health view of confirmed portfolio updates. Processed means accepted updates, Review means items awaiting attention, and Issues means recent update failures."
+  },
+  "recent-transactions": {
+    title: "Recent transactions",
+    body: "Shows confirmed portfolio buys, sells and the opening baseline. Technical collection and ingestion details are intentionally kept out of the main interface."
+  },
+  "security-settings": {
+    title: "Security",
+    body: "Money OS uses server-verified password sessions. Failed authentication attempts are rate-limited, and changing the primary password invalidates older sessions."
+  },
+  "performance-basis": {
+    title: "Performance basis",
+    body: "Tracked performance starts from the verified 31 Aug 2026 opening portfolio. Older equities use their market value on that date as the opening basis; mutual-fund cost uses invested amount when available, otherwise the opening NAV. This keeps tracking consistent but is not the same as lifetime acquisition P&L."
   }
 };
 
