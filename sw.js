@@ -1,4 +1,4 @@
-const CACHE = "money-os-v9";
+const CACHE = "money-os-v10";
 const ASSETS = ["./","./index.html","./app.js","./styles.css","./manifest.webmanifest","./icon.svg"];
 
 self.addEventListener("install", (event) => {
