@@ -4,6 +4,7 @@ const SESSION_KEY = "moneyos.session";
 const LEGACY_KEY = "moneyos.apiToken";
 const REMEMBER_KEY = "moneyos.remember";
 const PRIVACY_KEY = "moneyos.privacyMask";
+const THEME_KEY = "moneyos.theme";
 const MASK_TEXT = "••••••";
 
 const $ = (id) => document.getElementById(id);
@@ -51,6 +52,35 @@ function privateShare(v, digits = 1) {
 function tone(v) {
   if (state.masked || v === null || v === undefined) return "neutral";
   return num(v) >= 0 ? "positive" : "negative";
+}
+
+function preferredTheme() {
+  const saved = localStorage.getItem(THEME_KEY);
+  if (saved === "light" || saved === "dark") return saved;
+  return window.matchMedia?.("(prefers-color-scheme: light)")?.matches ? "light" : "dark";
+}
+
+function applyTheme(theme, persist = true) {
+  const next = theme === "light" ? "light" : "dark";
+  document.documentElement.dataset.theme = next;
+  if (persist) localStorage.setItem(THEME_KEY, next);
+  const meta = $("themeColor");
+  if (meta) meta.setAttribute("content", next === "light" ? "#f4f7fb" : "#0a0d12");
+  const button = $("themeToggle");
+  const label = $("themeToggleLabel");
+  if (button) {
+    button.setAttribute("aria-label", next === "light" ? "Switch to dark mode" : "Switch to light mode");
+    button.title = next === "light" ? "Switch to dark mode" : "Switch to light mode";
+    button.querySelector(".theme-icon-sun")?.classList.toggle("hidden", next === "light");
+    button.querySelector(".theme-icon-moon")?.classList.toggle("hidden", next !== "light");
+  }
+  if (label) label.textContent = next === "light" ? "Dark" : "Light";
+  if (state.data && state.view === "overview") requestAnimationFrame(drawChart);
+}
+
+function toggleTheme() {
+  const current = document.documentElement.dataset.theme || preferredTheme();
+  applyTheme(current === "light" ? "dark" : "light");
 }
 
 function dateLabel(value) {
@@ -124,12 +154,54 @@ function updatePrivacyControls() {
   }
 }
 
-function togglePrivacy() {
-  state.masked = !state.masked;
+function setPrivacy(masked) {
+  state.masked = Boolean(masked);
   localStorage.setItem(PRIVACY_KEY, state.masked ? "1" : "0");
   updatePrivacyControls();
   if (state.data) renderAll();
-  showToast(state.masked ? "Financial values hidden" : "Financial values visible");
+}
+
+function requestPrivacyUnlock() {
+  const dialog = $("privacyUnlockDialog");
+  $("privacyUnlockPassword").value = "";
+  $("privacyUnlockStatus").classList.add("hidden");
+  if (!dialog.open) dialog.showModal();
+  setTimeout(() => $("privacyUnlockPassword").focus(), 30);
+}
+
+function togglePrivacy() {
+  if (!state.masked) {
+    setPrivacy(true);
+    showToast("Financial values hidden");
+    return;
+  }
+  requestPrivacyUnlock();
+}
+
+async function unlockPrivacy() {
+  const password = $("privacyUnlockPassword").value;
+  const button = $("privacyUnlockBtn");
+  if (!password) {
+    setFormStatus($("privacyUnlockStatus"), "Enter your Money OS password.", false);
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = "Verifying…";
+  try {
+    await login(password, isRemembered());
+    setPrivacy(false);
+    $("privacyUnlockDialog").close();
+    showToast("Financial values revealed");
+  } catch (e) {
+    const message = e.status === 429
+      ? "Too many failed attempts. Try again in about 15 minutes."
+      : "Password verification failed.";
+    setFormStatus($("privacyUnlockStatus"), message, false);
+  } finally {
+    button.disabled = false;
+    button.textContent = "Reveal values";
+  }
 }
 
 function getSession() {
@@ -396,8 +468,8 @@ function basisHtml() {
 }
 
 function renderBasis() {
-  $("basisText").innerHTML = basisHtml();
-  $("settingsBasis").innerHTML = basisHtml();
+  if ($("basisText")) $("basisText").innerHTML = basisHtml();
+  if ($("settingsBasis")) $("settingsBasis").innerHTML = basisHtml();
 }
 
 function sortedFiltered(items, search, sort) {
@@ -432,7 +504,7 @@ function renderStocks() {
   const items = (d.positions || []).filter((p) => ["EQUITY", "ETF"].includes(p.instruments?.asset_type));
   const m = d.metrics?.stocks || {};
   $("stocksPageValue").textContent = money(m.value);
-  $("stocksSubtitle").textContent = (m.count || 0) + " holdings · " + pct(m.cost ? num(m.unrealized_pnl) / num(m.cost) * 100 : null) + " tracked change since 31 Aug 2026";
+  $("stocksSubtitle").textContent = (m.count || 0) + " holdings";
   $("stocksCost").textContent = money(m.cost);
   $("stocksUnrealized").textContent = signedMoney(m.unrealized_pnl);
   $("stocksUnrealized").className = tone(m.unrealized_pnl);
@@ -459,7 +531,7 @@ function renderFunds() {
   const items = (d.positions || []).filter((p) => p.instruments?.asset_type === "MF");
   const m = d.metrics?.mutual_funds || {};
   $("fundsPageValue").textContent = money(m.value);
-  $("fundsSubtitle").textContent = (m.count || 0) + " funds · " + pct(m.cost ? num(m.unrealized_pnl) / num(m.cost) * 100 : null) + " tracked change";
+  $("fundsSubtitle").textContent = (m.count || 0) + " funds";
   $("fundsCost").textContent = money(m.cost);
   $("fundsUnrealized").textContent = signedMoney(m.unrealized_pnl);
   $("fundsUnrealized").className = tone(m.unrealized_pnl);
@@ -504,6 +576,81 @@ function renderSettings() {
   updatePrivacyControls();
 }
 
+const INFO_COPY = {
+  "portfolio-basis": {
+    title: "Portfolio basis",
+    body: "The tracked starting capital used for performance calculations. For older holdings, Money OS starts from the verified opening baseline and then adds later confirmed buys."
+  },
+  "tracked-change": {
+    title: "Tracked change",
+    body: "Current value minus the tracked basis. It shows movement since the opening baseline, so it should not be read as your lifetime profit or loss."
+  },
+  "realized-change": {
+    title: "Realized",
+    body: "Profit or loss from positions actually sold after the tracked baseline. Unsold holdings are not counted here."
+  },
+  "nifty-context": {
+    title: "NIFTY 50 context",
+    body: "The broad-market move helps you judge whether your portfolio moved with the market or behaved differently on the day."
+  },
+  "stock-basis": {
+    title: "Tracked stock basis",
+    body: "The stock-side opening baseline plus verified purchases made after that baseline. It is a tracking basis, not necessarily original lifetime purchase cost."
+  },
+  "stock-change": {
+    title: "Tracked stock change",
+    body: "The difference between current stock value and the tracked stock basis. Use it for performance since the baseline, not lifetime P&L."
+  },
+  "stock-realized": {
+    title: "Realized stock P&L",
+    body: "Profit or loss from stock sales recorded after the baseline date. Holdings you still own remain in tracked change instead."
+  }
+};
+
+function openInfo(key) {
+  const copy = INFO_COPY[key];
+  if (!copy) return;
+  $("infoDialogTitle").textContent = copy.title;
+  $("infoDialogBody").textContent = copy.body;
+  if (!$("infoDialog").open) $("infoDialog").showModal();
+}
+
+function reportDateLabel(value) {
+  if (!value) return "—";
+  const d = new Date(String(value).length === 10 ? value + "T00:00:00" : value);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+}
+
+function professionalDailyText(value) {
+  return String(value ?? "")
+    .replace(/Money OS holdings remain reconciled with no new confirmed Gmail portfolio event\.?/gi, "No newly confirmed portfolio transaction changed current holdings.")
+    .replace(/Gmail search found/gi, "Portfolio review found")
+    .replace(/\bGmail\b/gi, "portfolio records")
+    .replace(/\bemail(s)?\b/gi, "communication$1")
+    .replace(/\bdatabase snapshot\b/gi, "portfolio snapshot")
+    .replace(/\bMoney OS price set\b/gi, "available portfolio price set")
+    .replace(/\bMoney OS\b/gi, "portfolio")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
+function isInternalDailyNote(value) {
+  return /\b(gmail|supabase|ingestion|extraction|source of truth|database table|sql|api token|query pipeline)\b/i.test(String(value ?? ""));
+}
+
+function maskDailyFinancialText(value) {
+  if (!state.masked) return value;
+  return String(value ?? "")
+    .replace(/(?:₹|INR\s*|Rs\.?\s*)[+\-−]?\s*\d[\d,]*(?:\.\d+)?/gi, MASK_TEXT)
+    .replace(/[+\-−]?\d+(?:\.\d+)?\s*%/g, "••••%")
+    .replace(/\b\d{1,3}(?:,\d{3})+(?:\.\d+)?\b/g, MASK_TEXT);
+}
+
+function dailyText(value) {
+  return maskDailyFinancialText(professionalDailyText(value));
+}
+
 function recommendationItem(item) {
   if (typeof item === "string") return { title: item, detail: "", priority: "" };
   if (!item || typeof item !== "object") return { title: "Update", detail: String(item ?? ""), priority: "" };
@@ -516,14 +663,18 @@ function recommendationItem(item) {
 
 function recommendationRows(items, kind = "action") {
   const rows = Array.isArray(items) ? items : [];
-  if (!rows.length) return '<div class="daily-list-empty">Nothing needs attention here.</div>';
-  return rows.map((raw) => {
+  const visible = rows.filter((raw) => {
+    const item = recommendationItem(raw);
+    return !isInternalDailyNote(item.title + " " + item.detail);
+  });
+  if (!visible.length) return '<div class="daily-list-empty">Nothing needs attention here.</div>';
+  return visible.map((raw) => {
     const item = recommendationItem(raw);
     const priorityClass = ["high", "urgent", "attention", "risk"].includes(item.priority)
       ? "attention"
       : ["medium", "watch", "monitor"].includes(item.priority) ? "watch" : "calm";
     return '<div class="daily-list-item"><span class="daily-bullet ' + priorityClass + '" aria-hidden="true"></span><div><strong>' +
-      escapeHtml(item.title) + '</strong>' + (item.detail ? '<p>' + escapeHtml(item.detail) + '</p>' : '') + '</div></div>';
+      escapeHtml(dailyText(item.title)) + '</strong>' + (item.detail ? '<p>' + escapeHtml(dailyText(item.detail)) + '</p>' : '') + '</div></div>';
   }).join("");
 }
 
@@ -533,19 +684,11 @@ function renderRecommendations() {
   if (!empty || !content) return;
 
   const rows = Array.isArray(state.data?.recommendations) ? state.data.recommendations : [];
-  if (state.masked) {
-    $("dailyLatestDate").textContent = "Hidden";
-    empty.classList.remove("hidden");
-    content.classList.add("hidden");
-    empty.innerHTML = '<div class="daily-empty-icon" aria-hidden="true">◉</div><div><h3>Daily brief hidden</h3><p>Recommendations can contain portfolio values, so they stay hidden while screen privacy is on.</p></div>';
-    return;
-  }
-
   if (!rows.length) {
     $("dailyLatestDate").textContent = "—";
     empty.classList.remove("hidden");
     content.classList.add("hidden");
-    empty.innerHTML = '<div class="daily-empty-icon" aria-hidden="true">✦</div><div><h3>No saved brief yet</h3><p>The scheduled tracker will save the next daily recommendation here after it runs.</p></div>';
+    empty.innerHTML = '<div class="daily-empty-icon" aria-hidden="true">✦</div><div><h3>No daily report yet</h3><p>Your next completed portfolio run will appear here.</p></div>';
     return;
   }
 
@@ -553,31 +696,38 @@ function renderRecommendations() {
   empty.classList.add("hidden");
   content.classList.remove("hidden");
   $("dailyLatestDate").textContent = dateLabel(latest.recommendation_date);
-  $("dailyTitle").textContent = latest.title || "Daily portfolio brief";
-  $("dailySummary").textContent = latest.summary || "No summary was saved for this run.";
-  $("dailyGeneratedAt").textContent = "Generated " + dateTimeLabel(latest.generated_at || latest.updated_at);
+  $("dailyTitle").textContent = "Daily Report — " + reportDateLabel(latest.recommendation_date);
+  $("dailySummary").textContent = dailyText(latest.summary || "No summary was saved for this run.");
+  $("dailyGeneratedAt").textContent = dateTimeLabel(latest.generated_at || latest.updated_at);
   const status = $("dailyTradingStatus");
-  status.textContent = latest.trading_day ? "Trading day" : "Non-trading day";
+  status.textContent = latest.trading_day ? "Trading day" : "Market closed";
   status.className = "daily-status " + (latest.trading_day ? "open" : "closed");
 
   $("dailyActions").innerHTML = recommendationRows(latest.actions, "action");
-  const highlights = Array.isArray(latest.highlights) ? latest.highlights : [];
+  $("dailyHighlights").innerHTML = recommendationRows(latest.highlights, "context");
   const risks = Array.isArray(latest.risks) ? latest.risks.map((x) => {
     if (typeof x === "string") return { title: x, priority: "risk" };
     return { ...(x || {}), priority: x?.priority || "risk" };
   }) : [];
-  $("dailyHighlights").innerHTML = recommendationRows([...highlights, ...risks], "context");
+  $("dailyRisks").innerHTML = recommendationRows(risks, "risk");
 
   const previous = rows.slice(1);
   $("dailyHistory").innerHTML = previous.length ? previous.map((r) => {
     const actions = Array.isArray(r.actions) ? r.actions : [];
-    const statusLabel = r.trading_day ? "Trading day" : "Non-trading day";
+    const risksForDay = Array.isArray(r.risks) ? r.risks.map((x) => {
+      if (typeof x === "string") return { title: x, priority: "risk" };
+      return { ...(x || {}), priority: x?.priority || "risk" };
+    }) : [];
+    const statusLabel = r.trading_day ? "Trading day" : "Market closed";
     return '<details class="daily-history-item"><summary><div><strong>' + escapeHtml(dateLabel(r.recommendation_date)) +
-      '</strong><span>' + escapeHtml(r.title || "Daily portfolio brief") + '</span></div><small>' +
+      '</strong><span>' + escapeHtml("Daily Report — " + reportDateLabel(r.recommendation_date)) + '</span></div><small>' +
       escapeHtml(statusLabel + " · " + actions.length + (actions.length === 1 ? " action" : " actions")) +
-      '</small></summary><div class="daily-history-body"><p>' + escapeHtml(r.summary || "No summary saved.") +
-      '</p><div class="daily-list">' + recommendationRows(actions, "action") + '</div></div></details>';
-  }).join("") : '<div class="daily-list-empty history-empty">Earlier briefs will appear here automatically.</div>';
+      '</small></summary><div class="daily-history-body"><p>' + escapeHtml(dailyText(r.summary || "No summary saved.")) +
+      '</p><div class="history-section"><span>Context</span><div class="daily-list">' + recommendationRows(r.highlights, "context") +
+      '</div></div><div class="history-section"><span>Risks</span><div class="daily-list">' + recommendationRows(risksForDay, "risk") +
+      '</div></div><div class="history-section"><span>Actions</span><div class="daily-list">' + recommendationRows(actions, "action") +
+      '</div></div></div></details>';
+  }).join("") : '<div class="daily-list-empty history-empty">Earlier reports will appear here automatically.</div>';
 }
 
 function drawChart() {
@@ -594,10 +744,15 @@ function drawChart() {
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, width, height);
 
+  const lightTheme = document.documentElement.dataset.theme === "light";
+  const chartBg = lightTheme ? "#f7f9fc" : "#11161d";
+  const chartGrid = lightTheme ? "#dde4ed" : "#202936";
+  const chartMuted = lightTheme ? "#657386" : "#8b96a5";
+
   if (state.masked) {
-    ctx.fillStyle = "#11161d";
+    ctx.fillStyle = chartBg;
     ctx.fillRect(0, 0, width, height);
-    ctx.strokeStyle = "#202936";
+    ctx.strokeStyle = chartGrid;
     ctx.lineWidth = 1;
     for (let i = 0; i < 4; i++) {
       const y = 24 + i * (height - 48) / 3;
@@ -606,7 +761,7 @@ function drawChart() {
       ctx.lineTo(width - 16, y);
       ctx.stroke();
     }
-    ctx.fillStyle = "#8b96a5";
+    ctx.fillStyle = chartMuted;
     ctx.font = "600 14px system-ui";
     ctx.textAlign = "center";
     ctx.fillText("Portfolio values hidden", width / 2, height / 2);
@@ -616,7 +771,7 @@ function drawChart() {
   }
 
   if (history.length < 2) {
-    ctx.fillStyle = "#7f8996";
+    ctx.fillStyle = chartMuted;
     ctx.font = "14px system-ui";
     ctx.fillText("History will grow with each daily snapshot.", 18, 36);
     $("historyRange").textContent = history.length + " snapshot";
@@ -629,7 +784,7 @@ function drawChart() {
   const span = Math.max(1, max - min);
   const padX = 16, padY = 24;
 
-  ctx.strokeStyle = "#202731";
+  ctx.strokeStyle = chartGrid;
   ctx.lineWidth = 1;
   for (let i = 0; i < 4; i++) {
     const y = padY + i * (height - padY * 2) / 3;
@@ -708,8 +863,14 @@ function bindEvents() {
   document.querySelectorAll("[data-nav]").forEach((el) => el.addEventListener("click", () => navigate(el.dataset.nav)));
   $("lockBtn").addEventListener("click", () => { clearSession(); state.data = null; window.location.reload(); });
   $("logoutBtn").addEventListener("click", () => { clearSession(); state.data = null; window.location.reload(); });
+  $("themeToggle").addEventListener("click", toggleTheme);
   $("privacyToggle").addEventListener("click", togglePrivacy);
   $("privacySettingsBtn").addEventListener("click", togglePrivacy);
+  $("privacyUnlockForm").addEventListener("submit", (e) => { e.preventDefault(); unlockPrivacy(); });
+  $("closePrivacyUnlockDialog").addEventListener("click", () => $("privacyUnlockDialog").close());
+  $("cancelPrivacyUnlock").addEventListener("click", () => $("privacyUnlockDialog").close());
+  document.querySelectorAll(".info-button").forEach((el) => el.addEventListener("click", () => openInfo(el.dataset.info)));
+  $("closeInfoDialog").addEventListener("click", () => $("infoDialog").close());
   $("stockSearch").addEventListener("input", renderStocks);
   $("stockSort").addEventListener("change", renderStocks);
   $("fundSearch").addEventListener("input", renderFunds);
@@ -733,6 +894,7 @@ function bindEvents() {
 }
 
 async function init() {
+  applyTheme(preferredTheme(), false);
   bindEvents();
   updatePrivacyControls();
   $("rememberDevice").checked = localStorage.getItem(REMEMBER_KEY) !== "0";
