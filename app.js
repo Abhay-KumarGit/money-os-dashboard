@@ -16,7 +16,8 @@ let state = {
   data: null,
   view: "overview",
   masked: localStorage.getItem(PRIVACY_KEY) === "1",
-  pendingPrivacyHide: false
+  pendingPrivacyHide: false,
+  pendingPrivacyReveal: false
 };
 
 function num(v) {
@@ -195,11 +196,17 @@ function openPrivacyPinDialog(forHide = false) {
 function togglePrivacy() {
   if (!state.masked) {
     if (!privacyPasswordConfigured()) {
+      state.pendingPrivacyReveal = false;
       openPrivacyPinDialog(true);
       return;
     }
     setPrivacy(true);
     showToast("Financial values hidden");
+    return;
+  }
+  if (!privacyPasswordConfigured()) {
+    state.pendingPrivacyReveal = true;
+    openPrivacyPinDialog(false);
     return;
   }
   requestPrivacyUnlock();
@@ -269,10 +276,16 @@ async function savePrivacyPin() {
 
     if (state.pendingPrivacyHide) {
       state.pendingPrivacyHide = false;
+      state.pendingPrivacyReveal = false;
       setPrivacy(true);
       showToast("Privacy PIN created · financial values hidden");
+    } else if (state.pendingPrivacyReveal) {
+      state.pendingPrivacyReveal = false;
+      setPrivacy(false);
+      showToast("Privacy PIN reset · financial values revealed");
     } else {
       state.pendingPrivacyHide = false;
+      state.pendingPrivacyReveal = false;
       showToast("Privacy PIN updated");
     }
   } catch (e) {
@@ -954,12 +967,16 @@ function bindEvents() {
   $("cancelPrivacyUnlock").addEventListener("click", () => $("privacyUnlockDialog").close());
   $("resetPrivacyFromUnlock").addEventListener("click", () => {
     $("privacyUnlockDialog").close();
+    state.pendingPrivacyReveal = true;
     openPrivacyPinDialog(false);
   });
-  $("privacyPinSettingsBtn").addEventListener("click", () => openPrivacyPinDialog(false));
+  $("privacyPinSettingsBtn").addEventListener("click", () => {
+    state.pendingPrivacyReveal = false;
+    openPrivacyPinDialog(false);
+  });
   $("privacyPinForm").addEventListener("submit", (e) => { e.preventDefault(); savePrivacyPin(); });
-  $("closePrivacyPinDialog").addEventListener("click", () => { state.pendingPrivacyHide = false; $("privacyPinDialog").close(); });
-  $("cancelPrivacyPin").addEventListener("click", () => { state.pendingPrivacyHide = false; $("privacyPinDialog").close(); });
+  $("closePrivacyPinDialog").addEventListener("click", () => { state.pendingPrivacyHide = false; state.pendingPrivacyReveal = false; $("privacyPinDialog").close(); });
+  $("cancelPrivacyPin").addEventListener("click", () => { state.pendingPrivacyHide = false; state.pendingPrivacyReveal = false; $("privacyPinDialog").close(); });
   document.querySelectorAll(".info-button").forEach((el) => el.addEventListener("click", () => openInfo(el.dataset.info)));
   $("closeInfoDialog").addEventListener("click", () => $("infoDialog").close());
   $("stockSearch").addEventListener("input", renderStocks);
