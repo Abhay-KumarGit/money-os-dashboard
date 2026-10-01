@@ -15,7 +15,8 @@ const number4 = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 4 });
 let state = {
   data: null,
   view: "overview",
-  masked: localStorage.getItem(PRIVACY_KEY) === "1"
+  masked: localStorage.getItem(PRIVACY_KEY) === "1",
+  pendingPrivacyHide: false
 };
 
 function num(v) {
@@ -148,9 +149,12 @@ function updatePrivacyControls() {
   }
   if (label) label.textContent = masked ? "Show values" : "Hide values";
   if (settingsButton) settingsButton.textContent = masked ? "Show financial values" : "Hide financial values";
+  const pinButton = $("privacyPinSettingsBtn");
+  const configured = Boolean(state.data?.security?.privacy_password_configured);
+  if (pinButton) pinButton.textContent = configured ? "Reset privacy PIN" : "Set privacy PIN";
   if (status) {
-    status.textContent = masked ? "Values hidden" : "Values visible";
-    status.classList.toggle("active", masked);
+    status.textContent = masked ? "Values hidden" : (configured ? "PIN protected" : "PIN not set");
+    status.classList.toggle("active", masked || configured);
   }
 }
 
@@ -161,6 +165,10 @@ function setPrivacy(masked) {
   if (state.data) renderAll();
 }
 
+function privacyPasswordConfigured() {
+  return Boolean(state.data?.security?.privacy_password_configured);
+}
+
 function requestPrivacyUnlock() {
   const dialog = $("privacyUnlockDialog");
   $("privacyUnlockPassword").value = "";
@@ -169,8 +177,27 @@ function requestPrivacyUnlock() {
   setTimeout(() => $("privacyUnlockPassword").focus(), 30);
 }
 
+function openPrivacyPinDialog(forHide = false) {
+  state.pendingPrivacyHide = Boolean(forHide);
+  const configured = privacyPasswordConfigured();
+  $("privacyPinDialogTitle").textContent = configured ? "Reset privacy PIN" : "Create privacy PIN";
+  $("privacyPinDialogCopy").textContent = configured
+    ? "Verify your Money OS password, then choose a new 4–8 digit privacy PIN."
+    : "Create a 4–8 digit privacy PIN that is separate from your Money OS password.";
+  $("privacyMainPassword").value = "";
+  $("newPrivacyPin").value = "";
+  $("confirmPrivacyPin").value = "";
+  $("privacyPinStatus").classList.add("hidden");
+  if (!$("privacyPinDialog").open) $("privacyPinDialog").showModal();
+  setTimeout(() => $("privacyMainPassword").focus(), 30);
+}
+
 function togglePrivacy() {
   if (!state.masked) {
+    if (!privacyPasswordConfigured()) {
+      openPrivacyPinDialog(true);
+      return;
+    }
     setPrivacy(true);
     showToast("Financial values hidden");
     return;
@@ -179,28 +206,84 @@ function togglePrivacy() {
 }
 
 async function unlockPrivacy() {
-  const password = $("privacyUnlockPassword").value;
+  const privacyPassword = $("privacyUnlockPassword").value.trim();
   const button = $("privacyUnlockBtn");
-  if (!password) {
-    setFormStatus($("privacyUnlockStatus"), "Enter your Money OS password.", false);
+  if (!/^\d{4,8}$/.test(privacyPassword)) {
+    setFormStatus($("privacyUnlockStatus"), "Enter your 4–8 digit privacy PIN.", false);
     return;
   }
 
   button.disabled = true;
   button.textContent = "Verifying…";
   try {
-    await login(password, isRemembered());
+    await authRequest({ action: "verify_privacy_password", privacy_password: privacyPassword }, getSession());
     setPrivacy(false);
     $("privacyUnlockDialog").close();
     showToast("Financial values revealed");
   } catch (e) {
-    const message = e.status === 429
-      ? "Too many failed attempts. Try again in about 15 minutes."
-      : "Password verification failed.";
+    let message = "Incorrect privacy PIN.";
+    if (e.status === 429) message = "Too many failed attempts. Try again in about 15 minutes.";
+    if (e.status === 409) message = "Privacy PIN is not set yet. Reset it with your Money OS password.";
     setFormStatus($("privacyUnlockStatus"), message, false);
   } finally {
     button.disabled = false;
     button.textContent = "Reveal values";
+  }
+}
+
+async function savePrivacyPin() {
+  const mainPassword = $("privacyMainPassword").value;
+  const pin = $("newPrivacyPin").value.trim();
+  const confirm = $("confirmPrivacyPin").value.trim();
+  const button = $("savePrivacyPinBtn");
+
+  if (!mainPassword) {
+    setFormStatus($("privacyPinStatus"), "Enter your Money OS password.", false);
+    return;
+  }
+  if (!/^\d{4,8}$/.test(pin)) {
+    setFormStatus($("privacyPinStatus"), "Use a 4–8 digit privacy PIN.", false);
+    return;
+  }
+  if (pin !== confirm) {
+    setFormStatus($("privacyPinStatus"), "Privacy PINs do not match.", false);
+    return;
+  }
+  if (pin === mainPassword) {
+    setFormStatus($("privacyPinStatus"), "Privacy PIN must be different from your Money OS password.", false);
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = "Saving…";
+  try {
+    await authRequest({
+      action: "reset_privacy_password",
+      main_password: mainPassword,
+      privacy_password: pin
+    }, getSession());
+
+    if (state.data?.security) state.data.security.privacy_password_configured = true;
+    updatePrivacyControls();
+    $("privacyPinDialog").close();
+
+    if (state.pendingPrivacyHide) {
+      state.pendingPrivacyHide = false;
+      setPrivacy(true);
+      showToast("Privacy PIN created · financial values hidden");
+    } else {
+      state.pendingPrivacyHide = false;
+      showToast("Privacy PIN updated");
+    }
+  } catch (e) {
+    let message = "Could not update privacy PIN.";
+    if (e.status === 401) message = "Money OS password is incorrect.";
+    if (e.status === 429) message = "Too many failed attempts. Try again in about 15 minutes.";
+    if (e.body?.error === "privacy_password_must_differ") message = "Privacy PIN must be different from your Money OS password.";
+    setFormStatus($("privacyPinStatus"), message, false);
+  } finally {
+    button.disabled = false;
+    button.textContent = "Save PIN";
   }
 }
 
@@ -869,6 +952,14 @@ function bindEvents() {
   $("privacyUnlockForm").addEventListener("submit", (e) => { e.preventDefault(); unlockPrivacy(); });
   $("closePrivacyUnlockDialog").addEventListener("click", () => $("privacyUnlockDialog").close());
   $("cancelPrivacyUnlock").addEventListener("click", () => $("privacyUnlockDialog").close());
+  $("resetPrivacyFromUnlock").addEventListener("click", () => {
+    $("privacyUnlockDialog").close();
+    openPrivacyPinDialog(false);
+  });
+  $("privacyPinSettingsBtn").addEventListener("click", () => openPrivacyPinDialog(false));
+  $("privacyPinForm").addEventListener("submit", (e) => { e.preventDefault(); savePrivacyPin(); });
+  $("closePrivacyPinDialog").addEventListener("click", () => { state.pendingPrivacyHide = false; $("privacyPinDialog").close(); });
+  $("cancelPrivacyPin").addEventListener("click", () => { state.pendingPrivacyHide = false; $("privacyPinDialog").close(); });
   document.querySelectorAll(".info-button").forEach((el) => el.addEventListener("click", () => openInfo(el.dataset.info)));
   $("closeInfoDialog").addEventListener("click", () => $("infoDialog").close());
   $("stockSearch").addEventListener("input", renderStocks);
