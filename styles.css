@@ -636,3 +636,52 @@ html[data-theme="light"] .daily-summary{color:#34455b}
   .dialog-actions{flex-wrap:wrap}
   .dialog-actions .subtle-action{width:100%;order:3;margin-right:0}
 }
+
+
+/* Minimal privacy controls */
+.privacy-card{padding:16px 18px}
+.privacy-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px}
+.privacy-title-row{display:flex;align-items:center;gap:7px;min-width:0}
+.privacy-title-row h3{margin:0;font-size:17px;letter-spacing:-.02em}
+.privacy-card .privacy-status{
+  border:0;background:transparent;padding:0;border-radius:0;font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.02em
+}
+.privacy-card .privacy-status.active{border:0;background:transparent;color:var(--muted)}
+.privacy-row{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 0;border-top:1px solid var(--border-soft)
+}
+.privacy-row:first-of-type{margin-top:10px}
+.privacy-row>div{display:grid;gap:2px;min-width:0}
+.privacy-row strong{font-size:13px;font-weight:650}
+.privacy-row small{font-size:10px;color:var(--muted)}
+.compact-control{min-height:32px;padding:6px 10px;border-radius:9px;font-size:11px;white-space:nowrap}
+
+.privacy-dialog{
+  width:min(86vw,360px);padding:16px 16px 14px;border-radius:16px;
+  box-shadow:0 20px 55px rgba(0,0,0,.34)
+}
+.privacy-dialog::backdrop{background:rgba(0,0,0,.48);backdrop-filter:none}
+.minimal-dialog-head{align-items:center;margin-bottom:12px}
+.minimal-dialog-head h3{margin:0;font-size:19px;letter-spacing:-.025em}
+.privacy-dialog .icon-close{font-size:21px;line-height:1;padding:2px 4px}
+.compact-field{margin:10px 0}
+.compact-field>span{font-size:11px}
+.compact-field input{padding:10px 12px;border-radius:10px;min-height:42px}
+.pin-fields{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.privacy-dialog-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}
+.privacy-dialog-actions-end{justify-content:flex-end}
+.compact-primary{min-height:34px;padding:7px 14px;border-radius:9px;font-size:12px}
+.text-action{
+  border:0;background:transparent;color:var(--muted);padding:7px 2px;min-height:32px;cursor:pointer;font-size:11px;font-weight:650
+}
+.text-action:hover{color:var(--text)}
+.privacy-dialog .form-status{margin:9px 0 0;font-size:11px}
+#privacyUnlockPassword,#newPrivacyPin,#confirmPrivacyPin{letter-spacing:.12em}
+
+@media(max-width:430px){
+  .privacy-card{padding:15px 16px}
+  .privacy-row{padding:12px 0}
+  .privacy-dialog{width:calc(100vw - 38px);padding:15px 15px 13px}
+  .pin-fields{grid-template-columns:1fr}
+  .privacy-dialog-actions{flex-wrap:nowrap}
+}
