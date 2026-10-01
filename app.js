@@ -614,7 +614,7 @@ function renderStocks() {
 function fundRow(p) {
   const i = p.instruments || {};
   return '<div class="asset-row fund-grid">' +
-    '<div class="holding-name" data-label="Fund"><strong>' + escapeHtml(i.name || i.scheme_code || "Mutual fund") + '</strong><small>' + escapeHtml(i.scheme_code ? "Scheme " + i.scheme_code : "Mutual fund") + '</small></div>' +
+    '<div class="holding-name" data-label="Fund"><strong>' + escapeHtml(i.name || i.scheme_code || "Mutual fund") + '</strong></div>' +
     '<div data-label="Units">' + escapeHtml(privateNumber(p.quantity)) + '</div>' +
     '<div data-label="Basis / NAV"><strong>' + escapeHtml(money(p.close, true)) + '</strong><small>basis ' + escapeHtml(money(p.average_cost, true)) + '</small></div>' +
     '<div data-label="Value"><strong>' + escapeHtml(money(p.market_value)) + '</strong><small>NAV ' + escapeHtml(dateLabel(p.price_date)) + '</small></div>' +
@@ -642,10 +642,9 @@ function transactionRow(t) {
   const i = t.instruments || {};
   const rawSymbol = String(i.symbol || "").trim();
   const numericSymbol = /^\d+$/.test(rawSymbol);
-  const title = i.name || (i.asset_type === "MF" && numericSymbol ? "Mutual fund" : rawSymbol) || "Instrument";
-  const identifier = i.asset_type === "MF" && !i.name && (i.scheme_code || numericSymbol ? rawSymbol : "")
-    ? " · Scheme " + (i.scheme_code || rawSymbol)
-    : "";
+  const fundCode = String(i.scheme_code || (numericSymbol ? rawSymbol : "")).trim();
+  const title = i.name || (i.asset_type === "MF" && fundCode ? "Mutual fund" : rawSymbol) || "Instrument";
+  const identifier = i.asset_type === "MF" && !i.name && fundCode ? " · Scheme " + fundCode : "";
   const label = t.side === "BUY" ? "Bought" : "Sold";
   return '<div class="activity-row"><div class="activity-icon ' + (t.side === "BUY" ? "buy" : "sell") + '">' + (t.side === "BUY" ? "B" : "S") + '</div><div class="activity-main"><strong>' + escapeHtml(label + " " + title) + '</strong><small>' + escapeHtml(privateNumber(t.quantity)) + " units @ " + escapeHtml(money(t.price, true)) + ' · ' + escapeHtml(t.broker || t.source) + escapeHtml(identifier) + '</small></div><time>' + escapeHtml(dateLabel(t.trade_date)) + '</time></div>';
 }
@@ -656,7 +655,7 @@ function renderActivity() {
   $("syncHealth").textContent = sync.health === "healthy" ? "Healthy" : "Review";
   $("syncHealth").className = sync.health === "healthy" ? "positive" : "warning";
   $("lastIngestion").textContent = sync.last_ingestion_at ? dateTimeLabel(sync.last_ingestion_at) : "No recent update";
-  $("processedCount").textContent = sync.recent_processed ?? "—";
+  if ($("processedCount")) $("processedCount").textContent = sync.recent_processed ?? "—";
   $("pendingCount").textContent = sync.recent_pending ?? "—";
   $("failedCount").textContent = sync.recent_failed ?? "—";
 
@@ -672,7 +671,7 @@ function renderActivity() {
 
 function renderSettings() {
   const s = state.data?.security || {};
-  $("sessionExpiry").textContent = s.session_expires_at ? dateTimeLabel(s.session_expires_at) : "Legacy session";
+  $("sessionExpiry").textContent = s.session_expires_at ? dateTimeLabel(s.session_expires_at) : "Current session";
   $("rememberState").textContent = isRemembered() ? "On · 7 days" : "Off · this tab";
   updatePrivacyControls();
 }
@@ -736,7 +735,7 @@ const INFO_COPY = {
   },
   "recent-transactions": {
     title: "Recent transactions",
-    body: "Shows confirmed portfolio buys, sells and the opening baseline. Technical collection and ingestion details are intentionally kept out of the main interface."
+    body: "Shows confirmed portfolio buys, sells and the opening baseline. Background processing details are intentionally kept out of the main interface."
   },
   "security-settings": {
     title: "Security",
