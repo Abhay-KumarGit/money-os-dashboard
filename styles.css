@@ -685,3 +685,23 @@ html[data-theme="light"] .daily-summary{color:#34455b}
   .pin-fields{grid-template-columns:1fr}
   .privacy-dialog-actions{flex-wrap:nowrap}
 }
+
+
+/* Compact market movers */
+.movers-panel{padding:18px 18px 16px}
+.movers-head{display:flex;align-items:center;gap:7px;margin-bottom:12px}
+.movers-head h2{margin:0;font-size:17px;letter-spacing:-.025em}
+.movers-panel .movers{gap:8px}
+.movers-panel .mover-card{padding:12px 13px;border-radius:12px}
+.movers-panel .mover-card>span{font-size:10px}
+.movers-panel .mover-main{margin-top:6px;align-items:center}
+.movers-panel .mover-main strong{font-size:13px}
+.movers-panel .mover-main small{font-size:10px}
+@media(max-width:780px){
+  .movers-panel{padding:16px}
+  .movers-head{margin-bottom:9px}
+  .movers-head h2{font-size:16px}
+  .movers-panel .mover-card{padding:11px 12px}
+  .movers-panel .mover-main{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}
+  .movers-panel .mover-main>div:last-child{align-self:center}
+}
