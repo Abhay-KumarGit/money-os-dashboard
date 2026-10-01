@@ -640,9 +640,14 @@ function renderFunds() {
 
 function transactionRow(t) {
   const i = t.instruments || {};
-  const title = i.symbol || i.name || "Instrument";
+  const rawSymbol = String(i.symbol || "").trim();
+  const numericSymbol = /^\d+$/.test(rawSymbol);
+  const title = i.name || (i.asset_type === "MF" && numericSymbol ? "Mutual fund" : rawSymbol) || "Instrument";
+  const identifier = i.asset_type === "MF" && !i.name && (i.scheme_code || numericSymbol ? rawSymbol : "")
+    ? " · Scheme " + (i.scheme_code || rawSymbol)
+    : "";
   const label = t.side === "BUY" ? "Bought" : "Sold";
-  return '<div class="activity-row"><div class="activity-icon ' + (t.side === "BUY" ? "buy" : "sell") + '">' + (t.side === "BUY" ? "B" : "S") + '</div><div class="activity-main"><strong>' + escapeHtml(label + " " + title) + '</strong><small>' + escapeHtml(privateNumber(t.quantity)) + " units @ " + escapeHtml(money(t.price, true)) + ' · ' + escapeHtml(t.broker || t.source) + '</small></div><time>' + escapeHtml(dateLabel(t.trade_date)) + '</time></div>';
+  return '<div class="activity-row"><div class="activity-icon ' + (t.side === "BUY" ? "buy" : "sell") + '">' + (t.side === "BUY" ? "B" : "S") + '</div><div class="activity-main"><strong>' + escapeHtml(label + " " + title) + '</strong><small>' + escapeHtml(privateNumber(t.quantity)) + " units @ " + escapeHtml(money(t.price, true)) + ' · ' + escapeHtml(t.broker || t.source) + escapeHtml(identifier) + '</small></div><time>' + escapeHtml(dateLabel(t.trade_date)) + '</time></div>';
 }
 
 function renderActivity() {
