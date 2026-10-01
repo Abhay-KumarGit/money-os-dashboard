@@ -696,7 +696,7 @@ function renderRecommendations() {
   empty.classList.add("hidden");
   content.classList.remove("hidden");
   $("dailyLatestDate").textContent = dateLabel(latest.recommendation_date);
-  $("dailyTitle").textContent = "Daily Report — " + reportDateLabel(latest.recommendation_date);
+  $("dailyTitle").textContent = "Daily Report - " + reportDateLabel(latest.recommendation_date);
   $("dailySummary").textContent = dailyText(latest.summary || "No summary was saved for this run.");
   $("dailyGeneratedAt").textContent = dateTimeLabel(latest.generated_at || latest.updated_at);
   const status = $("dailyTradingStatus");
@@ -720,7 +720,7 @@ function renderRecommendations() {
     }) : [];
     const statusLabel = r.trading_day ? "Trading day" : "Market closed";
     return '<details class="daily-history-item"><summary><div><strong>' + escapeHtml(dateLabel(r.recommendation_date)) +
-      '</strong><span>' + escapeHtml("Daily Report — " + reportDateLabel(r.recommendation_date)) + '</span></div><small>' +
+      '</strong><span>' + escapeHtml("Daily Report - " + reportDateLabel(r.recommendation_date)) + '</span></div><small>' +
       escapeHtml(statusLabel + " · " + actions.length + (actions.length === 1 ? " action" : " actions")) +
       '</small></summary><div class="daily-history-body"><p>' + escapeHtml(dailyText(r.summary || "No summary saved.")) +
       '</p><div class="history-section"><span>Context</span><div class="daily-list">' + recommendationRows(r.highlights, "context") +
