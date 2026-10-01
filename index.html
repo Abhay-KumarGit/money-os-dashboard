@@ -92,11 +92,11 @@
 
         <section class="overview-grid">
           <article class="panel chart-panel">
-            <div class="panel-head"><div><p class="kicker">PORTFOLIO VALUE</p><h2>Performance</h2></div><span id="historyRange" class="muted">90 days</span></div>
+            <div class="panel-head"><div><h2>Performance</h2></div><span id="historyRange" class="muted">90 days</span></div>
             <div class="chart-wrap"><canvas id="chart"></canvas></div>
           </article>
           <article class="panel allocation-panel">
-            <div class="panel-head"><div><p class="kicker">ALLOCATION</p><h2>Asset mix</h2></div></div>
+            <div class="panel-head"><div><h2>Asset mix</h2></div></div>
             <div class="allocation"><div id="donut" class="donut"><div class="donut-hole"><strong id="allocationTotal">—</strong><span>total</span></div></div><div id="allocationLegend" class="legend"></div></div>
           </article>
         </section>
@@ -117,7 +117,7 @@
       </section>
 
       <section id="view-stocks" class="view">
-        <div class="page-head"><div><p class="kicker">EQUITIES &amp; ETFs</p><h2>Stocks</h2><p id="stocksSubtitle" class="muted">—</p></div><div class="page-total"><span>Market value</span><strong id="stocksPageValue">—</strong></div></div>
+        <div class="page-head"><div><h2>Stocks</h2><p id="stocksSubtitle" class="muted">—</p></div><div class="page-total"><span>Market value</span><strong id="stocksPageValue">—</strong></div></div>
         <section class="summary-strip panel stock-summary" aria-label="Stock performance snapshot">
           <article class="summary-stat"><div class="summary-label"><span>Tracked basis</span><button class="info-button" type="button" data-info="stock-basis" aria-label="What does tracked basis mean?">i</button></div><strong id="stocksCost">—</strong><small>Opening basis + buys</small></article>
           <article class="summary-stat"><div class="summary-label"><span>Tracked change</span><button class="info-button" type="button" data-info="stock-change" aria-label="What does tracked change mean?">i</button></div><strong id="stocksUnrealized">—</strong><small>Not lifetime P&amp;L</small></article>
@@ -131,8 +131,12 @@
       </section>
 
       <section id="view-funds" class="view">
-        <div class="page-head"><div><p class="kicker">MUTUAL FUNDS</p><h2>Mutual Funds</h2><p id="fundsSubtitle" class="muted">—</p></div><div class="page-total"><span>Market value</span><strong id="fundsPageValue">—</strong></div></div>
-        <section class="mini-metrics"><article class="panel"><span>Tracked basis</span><strong id="fundsCost">—</strong></article><article class="panel"><span>Tracked change</span><strong id="fundsUnrealized">—</strong></article><article class="panel"><span>Realized since baseline</span><strong id="fundsRealized">—</strong></article></section>
+        <div class="page-head"><div><h2>Mutual Funds</h2><p id="fundsSubtitle" class="muted">—</p></div><div class="page-total"><span>Market value</span><strong id="fundsPageValue">—</strong></div></div>
+        <section class="summary-strip panel fund-summary" aria-label="Mutual fund performance snapshot">
+          <article class="summary-stat"><div class="summary-label"><span>Tracked basis</span><button class="info-button" type="button" data-info="fund-basis" aria-label="What does tracked basis mean?">i</button></div><strong id="fundsCost">—</strong><small>Opening basis + buys</small></article>
+          <article class="summary-stat"><div class="summary-label"><span>Tracked change</span><button class="info-button" type="button" data-info="fund-change" aria-label="What does tracked change mean?">i</button></div><strong id="fundsUnrealized">—</strong><small>Not lifetime P&amp;L</small></article>
+          <article class="summary-stat"><div class="summary-label"><span>Realized</span><button class="info-button" type="button" data-info="fund-realized" aria-label="What does realized mean?">i</button></div><strong id="fundsRealized">—</strong><small>Since baseline</small></article>
+        </section>
         <section class="panel holdings-panel">
           <div class="toolbar"><label class="search"><span>⌕</span><input id="fundSearch" type="search" placeholder="Search mutual funds"></label><select id="fundSort"><option value="value">Value</option><option value="pnl">P&amp;L</option><option value="name">Name</option></select></div>
           <div class="list-head fund-grid"><span>Fund</span><span>Units</span><span>Basis / NAV</span><span>Value</span><span>Tracked change</span></div>
@@ -141,18 +145,37 @@
       </section>
 
       <section id="view-activity" class="view">
-        <div class="page-head"><div><p class="kicker">AUTOMATION</p><h2>Activity</h2><p class="muted">Recent transactions and data health.</p></div></div>
-        <section class="sync-grid"><article class="panel"><span>Pipeline health</span><strong id="syncHealth">—</strong><small id="lastIngestion">—</small></article><article class="panel"><span>Processed</span><strong id="processedCount">—</strong><small>Recent sample</small></article><article class="panel"><span>Pending</span><strong id="pendingCount">—</strong><small>Needs review</small></article><article class="panel"><span>Failures</span><strong id="failedCount">—</strong><small>Recent sample</small></article></section>
-        <section class="panel"><div class="panel-head"><div><p class="kicker">TRANSACTIONS</p><h2>Recent activity</h2></div></div><div id="activityList" class="activity-list"></div></section>
-        <section class="panel source-note"><strong>Data sources</strong><p class="muted">CDSL baseline · Gmail contract notes · NSE official closes · AMFI NAVs · best-effort live quotes.</p></section>
+        <div class="page-head activity-page-head">
+          <div class="page-title-row"><h2>Activity</h2><button class="info-button" type="button" data-info="activity-status" aria-label="About activity status">i</button></div>
+        </div>
+
+        <section class="summary-strip panel activity-summary" aria-label="Portfolio activity status">
+          <article class="summary-stat"><div class="summary-label"><span>Status</span></div><strong id="syncHealth">—</strong><small id="lastIngestion">—</small></article>
+          <article class="summary-stat"><div class="summary-label"><span>Processed</span></div><strong id="processedCount">—</strong><small>Confirmed</small></article>
+          <article class="summary-stat"><div class="summary-label"><span>Review</span></div><strong id="pendingCount">—</strong><small>Pending</small></article>
+          <article class="summary-stat"><div class="summary-label"><span>Issues</span></div><strong id="failedCount">—</strong><small>Recent</small></article>
+        </section>
+
+        <section class="panel activity-panel">
+          <div class="section-title-row"><h2>Recent transactions</h2><button class="info-button" type="button" data-info="recent-transactions" aria-label="About recent transactions">i</button></div>
+          <div id="activityList" class="activity-list"></div>
+        </section>
       </section>
 
       <section id="view-settings" class="view">
-        <div class="page-head"><div><p class="kicker">PREFERENCES &amp; SECURITY</p><h2>Settings</h2><p class="muted">Session, password, privacy and calculation basis.</p></div></div>
+        <div class="page-head"><div><h2>Settings</h2></div></div>
         <section class="settings-grid">
-          <article class="panel settings-card"><div class="settings-title"><div><p class="kicker">SECURITY</p><h3>Password protection</h3></div><span class="secure-badge">Protected</span></div><p class="muted">The public URL contains only the app shell. Financial data requires a server-verified session.</p><dl class="settings-list"><div><dt>Session expires</dt><dd id="sessionExpiry">—</dd></div><div><dt>Remember device</dt><dd id="rememberState">—</dd></div><div><dt>Rate limiting</dt><dd>5 failed attempts / 15 min</dd></div></dl><button id="logoutBtn" class="danger">Lock &amp; sign out</button></article>
-          <article class="panel settings-card"><div class="settings-title"><div><p class="kicker">PASSWORD</p><h3>Change password</h3></div></div><p class="muted">Use a unique password of at least 12 characters. Updating it invalidates other sessions.</p><button id="changePasswordBtn" class="primary">Change password</button><p id="passwordChangeStatus" class="form-status hidden"></p></article>
-          <article class="panel settings-card"><div class="settings-title"><div><p class="kicker">CALCULATIONS</p><h3>Portfolio basis</h3></div></div><div id="settingsBasis" class="basis-copy"></div></article>
+          <article class="panel settings-card compact-settings-card">
+            <div class="settings-compact-head"><div class="privacy-title-row"><h3>Security</h3><button class="info-button" type="button" data-info="security-settings" aria-label="About security">i</button></div><span class="secure-badge">Protected</span></div>
+            <div class="settings-compact-row"><div><strong>Session</strong><small id="sessionExpiry">—</small></div><span id="rememberState" class="muted">—</span></div>
+            <div class="settings-compact-row"><div><strong>Money OS password</strong><small>Primary sign-in</small></div><button id="changePasswordBtn" class="secondary compact-control">Change</button></div>
+            <div class="settings-compact-row"><div><strong>Account access</strong><small>End this session</small></div><button id="logoutBtn" class="danger compact-danger">Sign out</button></div>
+            <p id="passwordChangeStatus" class="form-status hidden"></p>
+          </article>
+          <article class="panel settings-card compact-settings-card">
+            <div class="settings-compact-head"><div class="privacy-title-row"><h3>Performance basis</h3><button class="info-button" type="button" data-info="performance-basis" aria-label="About performance basis">i</button></div></div>
+            <div class="settings-compact-row"><div><strong>Baseline</strong><small>31 Aug 2026</small></div><span class="muted">Tracked</span></div>
+          </article>
           <article class="panel settings-card privacy-card">
             <div class="privacy-card-head">
               <div class="privacy-title-row">
@@ -196,18 +219,18 @@
 
           <section class="daily-grid">
             <article class="panel daily-card">
-              <div class="daily-card-head"><span class="daily-card-icon">✓</span><div><p class="kicker">ACTION</p><h3>Next actions</h3></div></div>
+              <div class="daily-card-head"><span class="daily-card-icon">✓</span><div><h3>Next actions</h3></div></div>
               <div id="dailyActions" class="daily-list"></div>
             </article>
             <article class="panel daily-card daily-context-card">
-              <div class="daily-card-head"><span class="daily-card-icon">↗</span><div><p class="kicker">TODAY</p><h3>Context & risk</h3></div></div>
+              <div class="daily-card-head"><span class="daily-card-icon">↗</span><div><h3>Context & risk</h3></div></div>
               <div class="daily-section-block"><div class="daily-section-label">Market & portfolio context</div><div id="dailyHighlights" class="daily-list"></div></div>
               <div class="daily-section-block risk-block"><div class="daily-section-label">Risk radar</div><div id="dailyRisks" class="daily-list"></div></div>
             </article>
           </section>
 
           <section class="panel daily-history-panel">
-            <div class="panel-head"><div><p class="kicker">HISTORY</p><h2>Previous briefs</h2></div><span class="muted">Last 30 days</span></div>
+            <div class="panel-head"><div><h2>Previous reports</h2></div></div>
             <div id="dailyHistory" class="daily-history"></div>
           </section>
         </div>
