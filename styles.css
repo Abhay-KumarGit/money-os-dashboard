@@ -705,3 +705,74 @@ html[data-theme="light"] .daily-summary{color:#34455b}
   .movers-panel .mover-main{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}
   .movers-panel .mover-main>div:last-child{align-self:center}
 }
+
+
+/* Cross-page consistency audit: compact, broker-style hierarchy */
+.fund-summary{grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:12px}
+.page-title-row,.section-title-row{display:flex;align-items:center;gap:7px}
+.page-title-row h2,.section-title-row h2{margin:0;letter-spacing:-.025em}
+.activity-page-head{margin-bottom:12px}
+.activity-summary{grid-template-columns:1.35fr repeat(3,minmax(0,.75fr));margin-bottom:12px}
+.activity-summary .summary-stat strong{font-size:17px}
+.activity-panel{padding:16px 18px 0;overflow:hidden}
+.section-title-row{margin-bottom:8px}
+.section-title-row h2{font-size:17px}
+.activity-panel .activity-list{margin:0 -18px}
+.activity-panel .activity-row{padding:12px 18px}
+.activity-panel .activity-row:first-child{border-top:1px solid var(--border-soft)}
+.activity-main strong{line-height:1.35}
+
+.settings-compact-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px}
+.settings-compact-head h3{margin:0;font-size:17px;letter-spacing:-.02em}
+.settings-compact-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-top:1px solid var(--border-soft)}
+.settings-compact-row>div{display:grid;gap:2px;min-width:0}
+.settings-compact-row strong{font-size:13px;font-weight:650}
+.settings-compact-row small,.settings-compact-row>span{font-size:10px;color:var(--muted)}
+.compact-danger{min-height:32px;padding:6px 10px;border-radius:9px;font-size:11px}
+
+.daily-card-head h3{margin:0}
+.daily-history-panel .panel-head h2{margin:0}
+
+@media(max-width:780px){
+  .page-head{margin:4px 2px 14px}
+  .page-head h2{font-size:27px}
+  .fund-summary .summary-stat{flex-basis:150px}
+
+  .asset-summaries{grid-template-columns:1fr 1fr;gap:8px}
+  .asset-summary{padding:14px;min-width:0}
+  .asset-summary>div{gap:7px;font-size:12px}
+  .asset-summary>strong{font-size:20px;margin:12px 0 7px;white-space:nowrap}
+  .asset-summary footer{font-size:10px;gap:7px}
+  .asset-badge{width:25px;height:25px;border-radius:7px;font-size:10px}
+
+  .activity-summary{
+    display:grid;grid-template-columns:1.45fr repeat(3,minmax(0,.8fr));
+    overflow:visible;scroll-snap-type:none
+  }
+  .activity-summary .summary-stat{
+    min-width:0;flex:none;padding:11px 9px;gap:5px
+  }
+  .activity-summary .summary-stat strong{font-size:15px}
+  .activity-summary .summary-label{font-size:8px;letter-spacing:.06em}
+  .activity-summary .summary-stat small{font-size:8px;white-space:normal;line-height:1.25}
+  .activity-summary .summary-stat:not(:first-child) small{display:none}
+  .activity-panel{padding:14px 15px 0}
+  .activity-panel .activity-list{margin:0 -15px}
+  .activity-panel .activity-row{padding:11px 15px}
+
+  .settings-card{padding:16px}
+  .compact-settings-card{padding:15px 16px}
+  .settings-compact-row{padding:11px 0}
+  .daily-card-head{margin-bottom:11px}
+  .daily-history-panel .panel-head{margin-bottom:9px}
+}
+
+@media(max-width:430px){
+  .asset-summary>strong{font-size:18px}
+  .asset-summary>div>span:last-child{font-size:11px}
+  .asset-summary footer{display:grid;gap:2px}
+  .activity-summary{grid-template-columns:1.5fr repeat(3,minmax(0,.78fr))}
+  .activity-summary .summary-stat{padding:10px 7px}
+  .activity-summary .summary-stat strong{font-size:14px}
+  .activity-summary .summary-stat:first-child small{font-size:7.5px}
+}
