@@ -249,7 +249,7 @@
 
   <dialog id="passwordDialog" class="password-dialog">
     <form id="passwordForm" method="dialog">
-      <div class="dialog-head"><div><p class="kicker">SECURITY</p><h3>Change password</h3></div><button id="closePasswordDialog" class="icon-close" value="cancel" aria-label="Close">×</button></div>
+      <div class="dialog-head minimal-dialog-head"><h3>Change password</h3><button id="closePasswordDialog" class="icon-close" value="cancel" aria-label="Close">×</button></div>
       <label class="field"><span>New password</span><input id="newPassword" type="password" autocomplete="new-password" minlength="12" maxlength="256" required></label>
       <label class="field"><span>Confirm password</span><input id="confirmPassword" type="password" autocomplete="new-password" minlength="12" maxlength="256" required></label>
       <p class="muted small">Minimum 12 characters. Changing it invalidates other sessions.</p>
@@ -286,7 +286,7 @@
   </dialog>
 
   <dialog id="infoDialog" class="password-dialog info-dialog">
-    <div class="dialog-head"><div><p class="kicker">PLAIN-LANGUAGE GUIDE</p><h3 id="infoDialogTitle">What this means</h3></div><button id="closeInfoDialog" class="icon-close" type="button" aria-label="Close">×</button></div>
+    <div class="dialog-head minimal-dialog-head"><h3 id="infoDialogTitle">What this means</h3><button id="closeInfoDialog" class="icon-close" type="button" aria-label="Close">×</button></div>
     <p id="infoDialogBody" class="info-dialog-copy"></p>
   </dialog>
 
