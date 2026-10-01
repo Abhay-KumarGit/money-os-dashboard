@@ -149,13 +149,13 @@ function updatePrivacyControls() {
     topButton.querySelector(".privacy-icon-hide")?.classList.toggle("hidden", !masked);
   }
   if (label) label.textContent = masked ? "Show values" : "Hide values";
-  if (settingsButton) settingsButton.textContent = masked ? "Show financial values" : "Hide financial values";
+  if (settingsButton) settingsButton.textContent = masked ? "Show" : "Hide";
   const pinButton = $("privacyPinSettingsBtn");
   const configured = Boolean(state.data?.security?.privacy_password_configured);
-  if (pinButton) pinButton.textContent = configured ? "Reset privacy PIN" : "Set privacy PIN";
+  if (pinButton) pinButton.textContent = configured ? "Reset PIN" : "Set PIN";
   if (status) {
-    status.textContent = masked ? "Values hidden" : (configured ? "PIN protected" : "PIN not set");
-    status.classList.toggle("active", masked || configured);
+    status.textContent = masked ? "Hidden" : "Visible";
+    status.classList.toggle("active", masked);
   }
 }
 
@@ -700,6 +700,14 @@ const INFO_COPY = {
   "stock-realized": {
     title: "Realized stock P&L",
     body: "Profit or loss from stock sales recorded after the baseline date. Holdings you still own remain in tracked change instead."
+  },
+  "screen-privacy": {
+    title: "Screen privacy",
+    body: "Masks amounts, quantities, prices, percentages and performance charts on this device. Showing them again requires your separate privacy PIN. The public dashboard code does not contain your holdings, passwords or backend credentials."
+  },
+  "privacy-pin": {
+    title: "Privacy PIN",
+    body: "A separate 4–8 digit PIN used only to reveal hidden financial values. It is stored only as a server-side hash. If you forget it, you can set a new PIN by verifying your Money OS password."
   }
 };
 
