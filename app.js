@@ -644,7 +644,6 @@ function renderActivity() {
   $("syncHealth").textContent = sync.health === "healthy" ? "Healthy" : "Review";
   $("syncHealth").className = sync.health === "healthy" ? "positive" : "warning";
   $("lastIngestion").textContent = sync.last_ingestion_at ? dateTimeLabel(sync.last_ingestion_at) : "No recent update";
-  if ($("processedCount")) $("processedCount").textContent = sync.recent_processed ?? "—";
   $("pendingCount").textContent = sync.recent_pending ?? "—";
   $("failedCount").textContent = sync.recent_failed ?? "—";
 
