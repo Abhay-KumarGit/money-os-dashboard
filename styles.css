@@ -475,3 +475,13 @@ body{
   .daily-status{justify-self:start}
   .daily-empty{padding:24px 18px;align-items:flex-start}
 }
+
+
+/* Mobile nav readability: thumb-friendly targets and stronger icon hierarchy */
+@media(max-width:780px){
+  .mobile-nav{padding-top:7px}
+  .mobile-nav button{min-height:72px;gap:6px}
+  .mobile-nav button .nav-icon{width:30px;height:30px;stroke-width:1.9}
+  .mobile-nav button small{font-size:10px;font-weight:720}
+  .mobile-nav button.active .nav-icon{width:32px;height:32px}
+}
