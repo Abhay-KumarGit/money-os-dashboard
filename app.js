@@ -708,6 +708,10 @@ const INFO_COPY = {
   "privacy-pin": {
     title: "Privacy PIN",
     body: "A separate 4–8 digit PIN used only to reveal hidden financial values. It is stored only as a server-side hash. If you forget it, you can set a new PIN by verifying your Money OS password."
+  },
+  "market-movers": {
+    title: "Market movers",
+    body: "Shows the strongest and weakest daily percentage moves among holdings with comparable recent prices. It is a quick context view, not a buy or sell signal."
   }
 };
 
