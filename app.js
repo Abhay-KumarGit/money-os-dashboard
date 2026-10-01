@@ -494,7 +494,6 @@ function renderAll() {
 
   renderAllocation();
   renderMovers();
-  renderBasis();
   renderStocks();
   renderFunds();
   renderActivity();
@@ -556,16 +555,6 @@ function renderMovers() {
   }
   const same = best && worst && best.instrument_id === worst.instrument_id;
   $("movers").innerHTML = moverCard("Best mover", best) + (same ? "" : moverCard("Weakest mover", worst));
-}
-
-function basisHtml() {
-  const b = state.data?.basis || {};
-  return '<p><strong>Opening baseline:</strong> ' + escapeHtml(b.as_of || "—") + ' from CDSL CAS.</p><p><strong>Important:</strong> for older equities, the opening basis is the market value on the baseline date, not the original purchase cost. “Tracked change” therefore measures movement since that opening basis and must not be read as lifetime profit/loss. Mutual-fund cost uses CDSL invested amount when reported; demat-held fund units without original cost use baseline NAV.</p>';
-}
-
-function renderBasis() {
-  if ($("basisText")) $("basisText").innerHTML = basisHtml();
-  if ($("settingsBasis")) $("settingsBasis").innerHTML = basisHtml();
 }
 
 function sortedFiltered(items, search, sort) {
