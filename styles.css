@@ -624,3 +624,15 @@ html[data-theme="light"] .daily-summary{color:#34455b}
   .daily-page-head h2{font-size:29px}
   .daily-summary{font-size:13px}
 }
+
+
+/* Separate privacy PIN controls */
+.privacy-settings-actions{display:flex;flex-wrap:wrap;gap:9px}
+.privacy-pin-hint{margin:10px 0 0!important}
+.subtle-action{margin-right:auto}
+#privacyUnlockPassword,#newPrivacyPin,#confirmPrivacyPin{letter-spacing:.18em;font-variant-numeric:tabular-nums}
+@media(max-width:430px){
+  .privacy-settings-actions{display:grid;grid-template-columns:1fr}
+  .dialog-actions{flex-wrap:wrap}
+  .dialog-actions .subtle-action{width:100%;order:3;margin-right:0}
+}
