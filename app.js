@@ -5,6 +5,7 @@ const LEGACY_KEY = "moneyos.apiToken";
 const REMEMBER_KEY = "moneyos.remember";
 const PRIVACY_KEY = "moneyos.privacyMask";
 const THEME_KEY = "moneyos.theme";
+const REFRESH_STATUS_URL = "https://epyixyfcwdpkauenljle.supabase.co/functions/v1/daily-refresh-status";
 const MASK_TEXT = "••••••";
 
 const $ = (id) => document.getElementById(id);
@@ -17,7 +18,9 @@ let state = {
   view: "overview",
   masked: localStorage.getItem(PRIVACY_KEY) === "1",
   pendingPrivacyHide: false,
-  pendingPrivacyReveal: false
+  pendingPrivacyReveal: false,
+  dailyRefreshStatus: null,
+  dailyRefreshBusy: false
 };
 
 function num(v) {
@@ -400,6 +403,7 @@ async function loadSummary() {
 
   state.data = await response.json();
   renderAll();
+  if (state.view === "daily") checkDailyRefreshStatus();
   showApp();
   return true;
 }
@@ -438,6 +442,7 @@ function navigate(view) {
   document.querySelectorAll("[data-nav]").forEach((el) => el.classList.toggle("active", el.dataset.nav === view));
   window.scrollTo({ top: 0, behavior: "smooth" });
   if (view === "overview") setTimeout(drawChart, 50);
+  if (view === "daily") checkDailyRefreshStatus();
 }
 
 function renderAll() {
@@ -806,6 +811,96 @@ function recommendationRows(items, kind = "action") {
   }).join("");
 }
 
+
+function indiaDateKey() {
+  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
+  const get = (type) => parts.find((x) => x.type === type)?.value || "";
+  return get("year") + "-" + get("month") + "-" + get("day");
+}
+
+function renderDailyRefreshStatus() {
+  const btn = $("dailyRefreshBtn");
+  const label = $("dailyRefreshLabel");
+  if (!btn || !label) return;
+  const s = state.dailyRefreshStatus;
+  if (state.dailyRefreshBusy) {
+    btn.disabled = true;
+    btn.classList.add("loading");
+    label.textContent = "Refreshing…";
+    return;
+  }
+  btn.classList.remove("loading");
+  if (!s) {
+    btn.disabled = true;
+    label.textContent = "Checking…";
+    return;
+  }
+  btn.disabled = !s.refresh_needed;
+  btn.classList.toggle("complete", Boolean(s.report_available_today));
+  if (s.report_available_today) label.textContent = "Up to date";
+  else if (s.refresh_needed) label.textContent = "Refresh today";
+  else label.textContent = "Not due today";
+}
+
+async function checkDailyRefreshStatus() {
+  const session = getSession();
+  if (!session) return null;
+  try {
+    const response = await fetch(REFRESH_STATUS_URL, {
+      headers: { authorization: "Bearer " + session },
+      cache: "no-store"
+    });
+    if (response.status === 401) return null;
+    if (!response.ok) throw new Error("Refresh status API error " + response.status);
+    state.dailyRefreshStatus = await response.json();
+    renderDailyRefreshStatus();
+    return state.dailyRefreshStatus;
+  } catch (e) {
+    console.error("Daily refresh status failed", e);
+    state.dailyRefreshStatus = {
+      date: indiaDateKey(),
+      report_available_today: false,
+      refresh_needed: false,
+      error: true
+    };
+    renderDailyRefreshStatus();
+    return null;
+  }
+}
+
+async function refreshDailyReport() {
+  const btn = $("dailyRefreshBtn");
+  if (!btn || btn.disabled || state.dailyRefreshBusy) return;
+  const session = getSession();
+  if (!session) return;
+  state.dailyRefreshBusy = true;
+  renderDailyRefreshStatus();
+  try {
+    const response = await fetch(REFRESH_STATUS_URL, {
+      method: "POST",
+      headers: { authorization: "Bearer " + session, "content-type": "application/json" },
+      body: JSON.stringify({ action: "refresh" }),
+      cache: "no-store"
+    });
+    const body = await response.json().catch(() => ({}));
+    if (response.status === 409 && body?.reason === "already_current") {
+      showToast("Today's report is already current.");
+    } else if (!response.ok) {
+      throw new Error(body?.error || "Refresh request failed");
+    } else {
+      showToast(body?.message || "Daily refresh requested.");
+    }
+    await loadSummary();
+    await checkDailyRefreshStatus();
+  } catch (e) {
+    console.error("Daily refresh failed", e);
+    showToast("Could not request today's refresh.");
+  } finally {
+    state.dailyRefreshBusy = false;
+    renderDailyRefreshStatus();
+  }
+}
+
 function renderRecommendations() {
   const empty = $("dailyEmpty");
   const content = $("dailyContent");
@@ -993,6 +1088,7 @@ function bindEvents() {
   $("logoutBtn").addEventListener("click", () => { clearSession(); state.data = null; window.location.reload(); });
   $("themeToggle").addEventListener("click", toggleTheme);
   $("privacyToggle").addEventListener("click", togglePrivacy);
+  $("dailyRefreshBtn")?.addEventListener("click", refreshDailyReport);
   $("privacySettingsBtn").addEventListener("click", togglePrivacy);
   $("privacyUnlockForm").addEventListener("submit", (e) => { e.preventDefault(); unlockPrivacy(); });
   $("closePrivacyUnlockDialog").addEventListener("click", () => $("privacyUnlockDialog").close());
