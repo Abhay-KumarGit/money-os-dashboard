@@ -198,7 +198,13 @@
       <section id="view-daily" class="view">
         <div class="page-head daily-page-head">
           <div><h2>Daily</h2></div>
-          <div class="page-total"><span>Latest report</span><strong id="dailyLatestDate">—</strong></div>
+          <div class="daily-head-actions">
+            <div class="page-total"><span>Latest report</span><strong id="dailyLatestDate">—</strong></div>
+            <button id="dailyRefreshBtn" class="daily-refresh-btn" type="button" disabled aria-label="Refresh today's daily report">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6v5h-5"/><path d="M4 18v-5h5"/><path d="M6.1 9a7 7 0 0 1 11.5-2.6L20 9M4 15l2.4 2.6A7 7 0 0 0 17.9 15"/></svg>
+              <span id="dailyRefreshLabel">Checking…</span>
+            </button>
+          </div>
         </div>
 
         <section id="dailyEmpty" class="panel daily-empty">
