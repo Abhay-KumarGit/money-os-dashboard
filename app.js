@@ -154,7 +154,6 @@ function updatePrivacyControls() {
   const topButton = $("privacyToggle");
   const settingsButton = $("privacySettingsBtn");
   const status = $("privacyStatus");
-  const label = $("privacyToggleLabel");
 
   if (topButton) {
     topButton.setAttribute("aria-pressed", String(masked));
@@ -163,7 +162,6 @@ function updatePrivacyControls() {
     topButton.querySelector(".privacy-icon-show")?.classList.toggle("hidden", masked);
     topButton.querySelector(".privacy-icon-hide")?.classList.toggle("hidden", !masked);
   }
-  if (label) label.textContent = masked ? "Show values" : "Hide values";
   if (settingsButton) settingsButton.textContent = masked ? "Show" : "Hide";
   const pinButton = $("privacyPinSettingsBtn");
   const configured = Boolean(state.data?.security?.privacy_password_configured);
