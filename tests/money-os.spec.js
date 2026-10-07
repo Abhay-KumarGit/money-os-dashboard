@@ -145,6 +145,7 @@ test("authenticated portfolio intelligence and interactions work", async ({ page
   await page.goto("/");
   await expect(page.locator("#app")).toBeVisible();
   await expect(page.locator("#view-daily")).toHaveClass(/active/);
+  await expect(page.locator("#dailyRefreshLabel")).toHaveText("Waiting for market");
 
   await page.locator('.tabs [data-nav="overview"]').click();
   await expect(page.getByText("Portfolio intelligence")).toBeVisible();
