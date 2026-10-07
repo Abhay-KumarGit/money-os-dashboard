@@ -426,6 +426,7 @@ async function loadSummary() {
   if (!response.ok) throw new Error("Portfolio API error " + response.status);
 
   state.data = await response.json();
+  await warmBrandImages(state.data);
   renderAll();
   if (state.view === "daily") checkDailyRefreshStatus();
   showApp();
@@ -586,7 +587,7 @@ function moverCard(label, p) {
   if (!p) return '<div class="empty-inline">Daily comparison will appear when consecutive market prices are available.</div>';
   const i = p.instruments || {};
   return '<article class="mover-card"><span class="muted">' + escapeHtml(label) + '</span><div class="mover-main">' +
-    '<div class="mover-company">' + stockBrandHtml(i, "stock-brand-mover") + '<div><strong>' + escapeHtml(i.symbol || i.name || "Holding") + '</strong><small>' + escapeHtml(i.name && i.symbol ? i.name : i.asset_type || "") + '</small></div></div>' +
+    '<div class="mover-company">' + instrumentBrandHtml(i, "stock-brand-mover", "high") + '<div><strong>' + escapeHtml(i.symbol || i.name || "Holding") + '</strong><small>' + escapeHtml(i.name && i.symbol ? i.name : i.asset_type || "") + '</small></div></div>' +
     '<div class="' + tone(p.day_change_pct) + '"><strong>' + escapeHtml(pct(p.day_change_pct)) + '</strong><small>' + escapeHtml(signedMoney(p.day_change)) + "</small></div></div></article>";
 }
 
@@ -638,9 +639,9 @@ function sortedFiltered(items, search, sortKey, direction = "desc") {
 function sortArrowMarkup(active, direction) {
   const upActive = active && direction === "asc";
   const downActive = active && direction === "desc";
-  return '<svg viewBox="0 0 12 20" aria-hidden="true">' +
-    '<path class="' + (upActive ? "is-active" : "") + '" d="M6 9V2M3.5 4.5 6 2l2.5 2.5"/>' +
-    '<path class="' + (downActive ? "is-active" : "") + '" d="M6 11v7m-2.5-2.5L6 18l2.5-2.5"/>' +
+  return '<svg viewBox="0 0 12 14" aria-hidden="true">' +
+    '<path class="' + (upActive ? "is-active" : "") + '" d="M3 5 6 2l3 3"/>' +
+    '<path class="' + (downActive ? "is-active" : "") + '" d="m3 9 3 3 3-3"/>' +
   '</svg>';
 }
 
@@ -840,13 +841,20 @@ const STOCK_BRAND_DOMAINS = Object.freeze({
   LT: "larsentoubro.com",
   AXISBANK: "axisbank.com",
   VEDL: "vedantalimited.com",
-  NSE: "nseindia.com",
+  ITCHOTELS: "itchotels.com",
+  VISL: "vedantaironandsteel.com",
+  VOGL: "vedantaoilandgas.com",
+  VEDPOWER: "vedantapower.com",
+  TMPV: "tatamotors.com",
+  TMCV: "cv.tatamotors.com",
+  TATAMOTORS: "tatamotors.com",
+  AERONEU: "aeroflexneu.com",
+  IRCTC: "irctc.co.in",
   SBIN: "sbi.co.in",
   ITC: "itcportal.com",
   BHARTIARTL: "airtel.in",
   KOTAKBANK: "kotak.com",
   HINDUNILVR: "hul.co.in",
-  TATAMOTORS: "tatamotors.com",
   TATASTEEL: "tatasteel.com",
   WIPRO: "wipro.com",
   HCLTECH: "hcltech.com",
@@ -874,53 +882,159 @@ const STOCK_BRAND_DOMAINS = Object.freeze({
   ULTRACEMCO: "ultratechcement.com"
 });
 
+const STOCK_NAME_BRANDS = [
+  ["ITC HOTELS", "itchotels.com"],
+  ["VEDANTA IRON", "vedantaironandsteel.com"],
+  ["VEDANTA OIL", "vedantaoilandgas.com"],
+  ["VEDANTA POWER", "vedantapower.com"],
+  ["TATA MOTORS PASSENGER", "tatamotors.com"],
+  ["TATA MOTORS", "tatamotors.com"],
+  ["AEROFLEX NEU", "aeroflexneu.com"],
+  ["INDIAN RAILWAY CATERING", "irctc.co.in"]
+];
+
+const FUND_BRAND_DOMAINS = [
+  ["AXIS", "axismf.com"],
+  ["HDFC", "hdfcfund.com"],
+  ["ICICI PRUDENTIAL", "icicipruamc.com"],
+  ["SBI", "sbimf.com"],
+  ["NIPPON", "mf.nipponindiaim.com"],
+  ["PPFAS", "amc.ppfas.com"],
+  ["PARAG PARIKH", "amc.ppfas.com"],
+  ["MIRAE", "miraeassetmf.co.in"],
+  ["KOTAK", "kotakmf.com"],
+  ["UTI", "utimf.com"],
+  ["ADITYA BIRLA", "mutualfund.adityabirlacapital.com"],
+  ["TATA", "tatamutualfund.com"],
+  ["CANARA ROBECO", "canararobeco.com"],
+  ["DSP", "dspim.com"],
+  ["EDELWEISS", "edelweissmf.com"],
+  ["MOTILAL OSWAL", "motilaloswalmf.com"],
+  ["QUANT ", "quantmutual.com"],
+  ["FRANKLIN", "franklintempletonindia.com"],
+  ["BANDHAN", "bandhanmutual.com"],
+  ["INVESCO", "invescomutualfund.com"],
+  ["HSBC", "assetmanagement.hsbc.co.in"],
+  ["MAHINDRA MANULIFE", "mahindramanulife.com"],
+  ["WHITEOAK", "whiteoakamc.com"],
+  ["ZERODHA", "zerodhafundhouse.com"],
+  ["JM ", "jmfinancialmf.com"],
+  ["BAJAJ FINSERV", "bajajamc.com"],
+  ["UNION", "unionmf.com"],
+  ["LIC ", "licmf.com"],
+  ["PGIM", "pgimindiamf.com"],
+  ["QUANTUM", "quantumamc.com"],
+  ["NAVI", "navi.com"],
+  ["SAMCO", "samcomf.com"]
+];
+
+const BRAND_SCALE = Object.freeze({
+  ITCHOTELS: 1.34,
+  TATAMOTORS: 1.42,
+  TMPV: 1.42,
+  TMCV: 1.42,
+  ITC: 1.24,
+  IRCTC: 1.28,
+  AERONEU: 1.26,
+  VISL: 1.20,
+  VOGL: 1.22,
+  VEDPOWER: 1.22
+});
+
 function normalizedStockSymbol(i) {
   return String(i?.symbol || "").trim().toUpperCase().replace(/\.(NS|BO)$/i, "");
 }
 
-function stockIconText(i) {
+function instrumentBrandInitials(i) {
   const symbol = normalizedStockSymbol(i);
+  if (symbol && !/^\d+$/.test(symbol)) return symbol.replace(/[^A-Z0-9]/g, "").slice(0, 2) || "S";
   const name = String(i?.name || "").trim();
-  if (symbol) return symbol.replace(/[^A-Z0-9]/g, "").slice(0, 2) || "S";
   const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("");
-  return initials.toUpperCase() || "S";
+  return initials.toUpperCase() || (i?.asset_type === "MF" ? "MF" : "S");
 }
 
-function stockLogoUrl(i) {
-  const symbol = normalizedStockSymbol(i);
-  if (!symbol) return "";
-  const domain = STOCK_BRAND_DOMAINS[symbol];
-  if (domain) {
-    return "https://www.google.com/s2/favicons?sz=128&domain_url=" + encodeURIComponent("https://" + domain);
+function instrumentBrandDomain(i) {
+  const type = String(i?.asset_type || "").toUpperCase();
+  const name = String(i?.name || "").toUpperCase();
+  if (type === "MF") {
+    const match = FUND_BRAND_DOMAINS.find(([term]) => name.includes(term));
+    return match?.[1] || "";
   }
-  const exchange = String(i?.exchange || "").toUpperCase();
-  const suffix = exchange.includes("BSE") ? ".BO" : ".NS";
-  return "https://financialmodelingprep.com/image-stock/" + encodeURIComponent(symbol + suffix) + ".png";
+
+  const symbol = normalizedStockSymbol(i);
+  if (STOCK_BRAND_DOMAINS[symbol]) return STOCK_BRAND_DOMAINS[symbol];
+  const nameMatch = STOCK_NAME_BRANDS.find(([term]) => name.includes(term));
+  return nameMatch?.[1] || "";
 }
 
-function stockBrandHtml(i, extraClass = "") {
-  const src = stockLogoUrl(i);
-  const initials = stockIconText(i);
-  const symbol = normalizedStockSymbol(i) || String(i?.name || "Stock");
-  return '<span class="stock-brand ' + escapeHtml(extraClass) + '" title="' + escapeHtml(symbol) + '">' +
-    (src ? '<img class="stock-brand-logo" src="' + escapeHtml(src) + '" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">' : '') +
+function instrumentBrandScale(i) {
+  const symbol = normalizedStockSymbol(i);
+  if (BRAND_SCALE[symbol]) return BRAND_SCALE[symbol];
+  const type = String(i?.asset_type || "").toUpperCase();
+  return type === "MF" ? 1.16 : 1.12;
+}
+
+function instrumentBrandLogoUrl(i) {
+  const domain = instrumentBrandDomain(i);
+  if (!domain) return "";
+  return "https://www.google.com/s2/favicons?sz=256&domain_url=" + encodeURIComponent("https://" + domain);
+}
+
+function instrumentBrandHtml(i, extraClass = "", priority = "auto") {
+  const src = instrumentBrandLogoUrl(i);
+  const initials = instrumentBrandInitials(i);
+  const title = normalizedStockSymbol(i) || String(i?.name || "Investment");
+  const scale = instrumentBrandScale(i);
+  return '<span class="stock-brand ' + escapeHtml(extraClass) + '" title="' + escapeHtml(title) + '" style="--brand-scale:' + escapeHtml(scale) + '">' +
+    (src ? '<img class="stock-brand-logo" src="' + escapeHtml(src) + '" alt="" width="40" height="40" loading="eager" decoding="async" referrerpolicy="no-referrer" fetchpriority="' + escapeHtml(priority) + '">' : '') +
     '<span class="stock-brand-fallback' + (src ? ' hidden' : '') + '" aria-hidden="true">' + escapeHtml(initials) + '</span>' +
   '</span>';
+}
+
+function stockBrandHtml(i, extraClass = "", priority = "auto") {
+  return instrumentBrandHtml(i, extraClass, priority);
 }
 
 function escapeRegExp(value) {
   return String(value).replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
 }
 
-function matchPortfolioStock(text) {
+function matchPortfolioInstrument(text) {
   const haystack = " " + String(text || "").toUpperCase() + " ";
-  const stocks = (state.data?.positions || []).filter((p) => ["EQUITY", "ETF"].includes(p.instruments?.asset_type));
-  return stocks.map((p) => p.instruments || {}).find((i) => {
+  const positions = state.data?.positions || [];
+  return positions.map((p) => p.instruments || {}).find((i) => {
     const symbol = normalizedStockSymbol(i);
-    if (symbol && new RegExp("(^|[^A-Z0-9])" + escapeRegExp(symbol) + "([^A-Z0-9]|$)").test(haystack)) return true;
-    const name = String(i.name || "").toUpperCase().replace(/\b(LTD|LIMITED|INDIA)\.?\b/g, "").trim();
-    return name.length >= 6 && haystack.includes(name);
+    if (symbol && !/^\d+$/.test(symbol) && new RegExp("(^|[^A-Z0-9])" + escapeRegExp(symbol) + "([^A-Z0-9]|$)").test(haystack)) return true;
+
+    const rawName = String(i.name || "").toUpperCase();
+    const compactName = rawName
+      .replace(/\b(LTD|LIMITED|INDIA|DIRECT|GROWTH|PLAN|FUND|EQUITY|SHARES|SCHEME|NSE|BSE)\.?\b/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (compactName.length >= 8 && haystack.includes(compactName)) return true;
+
+    const meaningfulWords = compactName.split(" ").filter((word) => word.length >= 4).slice(0, 2);
+    return meaningfulWords.length >= 2 && meaningfulWords.every((word) => haystack.includes(word));
   }) || null;
+}
+
+function warmBrandImages(data) {
+  const positions = Array.isArray(data?.positions) ? data.positions : [];
+  const urls = [...new Set(positions.map((p) => instrumentBrandLogoUrl(p.instruments || {})).filter(Boolean))];
+  if (!urls.length) return Promise.resolve();
+
+  const loaders = urls.map((src) => new Promise((resolve) => {
+    const img = new Image();
+    img.decoding = "async";
+    img.onload = resolve;
+    img.onerror = resolve;
+    img.src = src;
+  }));
+
+  return Promise.race([
+    Promise.allSettled(loaders),
+    new Promise((resolve) => setTimeout(resolve, 280))
+  ]);
 }
 
 function findPositionFromAction(item) {
@@ -976,7 +1090,7 @@ function stockRow(p) {
     : "";
   return '<div class="asset-row stock-grid">' +
     '<div class="holding-name holding-with-icon" data-label="Holding">' +
-      stockBrandHtml(i, "stock-brand-row") +
+      stockBrandHtml(i, "stock-brand-row", "high") +
       '<span class="holding-copy"><strong>' + escapeHtml(symbol) + '</strong><small>' + escapeHtml(company) + '</small></span>' +
     '</div>' +
     '<div data-label="Qty">' + escapeHtml(privateNumber(p.quantity)) + '</div>' +
@@ -1015,7 +1129,10 @@ function renderStocks() {
 function fundRow(p) {
   const i = p.instruments || {};
   return '<div class="asset-row fund-grid">' +
-    '<div class="holding-name" data-label="Fund"><strong>' + escapeHtml(i.name || i.scheme_code || "Mutual fund") + '</strong></div>' +
+    '<div class="holding-name holding-with-icon" data-label="Fund">' +
+      instrumentBrandHtml(i, "stock-brand-row fund-brand-row", "high") +
+      '<span class="holding-copy"><strong>' + escapeHtml(i.name || i.scheme_code || "Mutual fund") + '</strong><small>' + escapeHtml(i.scheme_code ? "Scheme " + i.scheme_code : "Mutual fund") + '</small></span>' +
+    '</div>' +
     '<div data-label="Units">' + escapeHtml(privateNumber(p.quantity)) + '</div>' +
     '<div data-label="Basis / NAV"><strong>' + escapeHtml(money(p.close, true)) + '</strong><small>basis ' + escapeHtml(money(p.average_cost, true)) + '</small></div>' +
     '<div data-label="Value"><strong>' + escapeHtml(money(p.market_value)) + '</strong><small>NAV ' + escapeHtml(dateLabel(p.price_date)) + '</small></div>' +
@@ -1048,10 +1165,8 @@ function transactionRow(t) {
   const title = i.name || (i.asset_type === "MF" && fundCode ? "Mutual fund" : rawSymbol) || "Instrument";
   const identifier = i.asset_type === "MF" && !i.name && fundCode ? " · Scheme " + fundCode : "";
   const label = t.side === "BUY" ? "Bought" : "Sold";
-  const isStock = ["EQUITY", "ETF"].includes(i.asset_type);
-  const leading = isStock
-    ? '<div class="activity-brand-wrap">' + stockBrandHtml(i, "stock-brand-activity") + '<span class="activity-side-badge ' + (t.side === "BUY" ? "buy" : "sell") + '">' + (t.side === "BUY" ? "B" : "S") + '</span></div>'
-    : '<div class="activity-icon ' + (t.side === "BUY" ? "buy" : "sell") + '">' + (t.side === "BUY" ? "B" : "S") + '</div>';
+  const leading = '<div class="activity-brand-wrap">' + instrumentBrandHtml(i, "stock-brand-activity") +
+    '<span class="activity-side-badge ' + (t.side === "BUY" ? "buy" : "sell") + '">' + (t.side === "BUY" ? "B" : "S") + '</span></div>';
   return '<div class="activity-row">' + leading + '<div class="activity-main"><strong>' + escapeHtml(label + " " + title) + '</strong><small>' + escapeHtml(privateNumber(t.quantity)) + " units @ " + escapeHtml(money(t.price, true)) + ' · ' + escapeHtml(t.broker || t.source) + escapeHtml(identifier) + '</small></div><time>' + escapeHtml(dateLabel(t.trade_date)) + '</time></div>';
 }
 
@@ -1406,9 +1521,9 @@ function recommendationRows(items, kind = "action") {
     const priorityClass = ["high", "urgent", "attention", "risk"].includes(item.priority)
       ? "attention"
       : ["medium", "watch", "monitor"].includes(item.priority) ? "watch" : "calm";
-    const relatedStock = matchPortfolioStock(item.title + " " + item.detail);
+    const relatedStock = matchPortfolioInstrument(item.title + " " + item.detail);
     const leading = relatedStock
-      ? stockBrandHtml(relatedStock, "stock-brand-daily brand-priority-" + priorityClass)
+      ? instrumentBrandHtml(relatedStock, "stock-brand-daily brand-priority-" + priorityClass)
       : '<span class="daily-bullet ' + priorityClass + '" aria-hidden="true"></span>';
     return '<div class="daily-list-item' + (relatedStock ? " has-brand" : "") + '">' + leading + '<div class="daily-item-copy"><strong>' +
       escapeHtml(dailyText(item.title)) + '</strong>' + (item.detail ? '<p>' + escapeHtml(dailyText(item.detail)) + '</p>' : '') +
