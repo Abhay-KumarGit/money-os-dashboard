@@ -17,7 +17,7 @@ const number4 = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 4 });
 
 let state = {
   data: null,
-  view: "overview",
+  view: "daily",
   masked: true,
   navDock: localStorage.getItem(NAV_DOCK_KEY) === "right" ? "right" : "left",
   dailyHistoryIndex: 0,
