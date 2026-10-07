@@ -1176,3 +1176,98 @@ html[data-theme="light"] .daily-history-panel{
   .daily-list-item p{font-size:12px}
   .daily-history-panel{padding:26px 0 6px}
 }
+
+
+/* Navigation rail refinement: integrated, spacious, no enclosing card */
+@media (min-width: 901px){
+  .workspace{
+    grid-template-columns:196px minmax(0,1fr) 196px;
+    column-gap:28px;
+  }
+
+  .nav-rail{
+    position:sticky;
+    top:18px;
+    padding:0;
+    border:0;
+    border-radius:0;
+    background:transparent;
+    box-shadow:none;
+    backdrop-filter:none;
+  }
+
+  .nav-rail .tabs{
+    gap:0;
+  }
+
+  .nav-rail .tabs button{
+    position:relative;
+    min-height:58px;
+    padding:0 16px;
+    border:0;
+    border-bottom:1px solid var(--border-soft);
+    border-radius:0;
+    background:transparent;
+    color:var(--muted);
+    font-size:14px;
+    font-weight:650;
+  }
+
+  .nav-rail .tabs button:first-child{
+    border-top:1px solid var(--border-soft);
+  }
+
+  .nav-rail .tabs button:hover{
+    background:rgba(104,166,255,.035);
+    color:var(--text);
+  }
+
+  .nav-rail .tabs button.active{
+    background:transparent;
+    color:var(--text);
+    font-weight:760;
+  }
+
+  .nav-rail .tabs button.active::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:14px;
+    bottom:14px;
+    width:2px;
+    border-radius:2px;
+    background:var(--accent);
+  }
+
+  .nav-dock-toggle{
+    margin:16px 0 0;
+    width:42px;
+    height:42px;
+    min-height:42px;
+    border-radius:12px;
+  }
+
+  .nav-dock-toggle::before{
+    content:"";
+    position:absolute;
+    left:0;
+    right:0;
+    top:-16px;
+    height:1px;
+    background:var(--border-soft);
+    width:196px;
+  }
+
+  .nav-dock-toggle{
+    position:relative;
+  }
+}
+
+@media (max-width: 1280px) and (min-width: 901px){
+  .workspace{
+    grid-template-columns:176px minmax(0,1fr) 176px;
+    column-gap:20px;
+  }
+
+  .nav-dock-toggle::before{width:176px}
+}
