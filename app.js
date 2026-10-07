@@ -846,7 +846,7 @@ function renderDailyRefreshStatus() {
 
   if (s.refresh_completed) {
     btn.disabled = true;
-    label.textContent = s.report_available_today ? "Up to date" : "Data refreshed";
+    label.textContent = s.report_available_today ? "Up to date" : "Report pending";
   } else if (s.refresh_requested) {
     btn.disabled = true;
     label.textContent = "Queued";
@@ -864,14 +864,19 @@ function scheduleDailyRefreshPoll(status) {
     clearTimeout(dailyRefreshPollTimer);
     dailyRefreshPollTimer = null;
   }
-  if (state.view !== "daily" || !status?.refresh_requested || status?.refresh_completed) return;
+  if (state.view !== "daily" || !status) return;
 
+  const waitingForData = Boolean(status.refresh_requested && !status.refresh_completed);
+  const waitingForReport = Boolean(status.refresh_completed && !status.report_available_today);
+  if (!waitingForData && !waitingForReport) return;
+
+  const delay = waitingForData ? 15000 : 60000;
   dailyRefreshPollTimer = setTimeout(async () => {
-    await checkDailyRefreshStatus();
-    if (state.dailyRefreshStatus?.refresh_completed || state.dailyRefreshStatus?.report_available_today) {
+    const next = await checkDailyRefreshStatus();
+    if (next?.report_available_today) {
       await loadSummary();
     }
-  }, 15000);
+  }, delay);
 }
 
 async function checkDailyRefreshStatus() {
