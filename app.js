@@ -638,7 +638,10 @@ function sortedFiltered(items, search, sortKey, direction = "desc") {
 function sortArrowMarkup(active, direction) {
   const upActive = active && direction === "asc";
   const downActive = active && direction === "desc";
-  return '<svg viewBox="0 0 12 14" aria-hidden="true"><path class="' + (upActive ? "is-active" : "") + '" d="M3 5 6 2l3 3"/><path class="' + (downActive ? "is-active" : "") + '" d="m3 9 3 3 3-3"/></svg>';
+  return '<svg viewBox="0 0 12 20" aria-hidden="true">' +
+    '<path class="' + (upActive ? "is-active" : "") + '" d="M6 9V2M3.5 4.5 6 2l2.5 2.5"/>' +
+    '<path class="' + (downActive ? "is-active" : "") + '" d="M6 11v7m-2.5-2.5L6 18l2.5-2.5"/>' +
+  '</svg>';
 }
 
 function updateSortHeaders(table, key, direction) {
@@ -828,28 +831,152 @@ function enhanceToolbarSelects() {
   });
 }
 
+const STOCK_BRAND_DOMAINS = Object.freeze({
+  RELIANCE: "ril.com",
+  TCS: "tcs.com",
+  HDFCBANK: "hdfcbank.com",
+  INFY: "infosys.com",
+  ICICIBANK: "icicibank.com",
+  LT: "larsentoubro.com",
+  AXISBANK: "axisbank.com",
+  VEDL: "vedantalimited.com",
+  NSE: "nseindia.com",
+  SBIN: "sbi.co.in",
+  ITC: "itcportal.com",
+  BHARTIARTL: "airtel.in",
+  KOTAKBANK: "kotak.com",
+  HINDUNILVR: "hul.co.in",
+  TATAMOTORS: "tatamotors.com",
+  TATASTEEL: "tatasteel.com",
+  WIPRO: "wipro.com",
+  HCLTECH: "hcltech.com",
+  MARUTI: "marutisuzuki.com",
+  TITAN: "titancompany.in",
+  SUNPHARMA: "sunpharma.com",
+  ASIANPAINT: "asianpaints.com",
+  BAJFINANCE: "bajajfinserv.in",
+  BAJAJFINSV: "bajajfinserv.in",
+  TECHM: "techmahindra.com",
+  ONGC: "ongcindia.com",
+  NTPC: "ntpc.co.in",
+  POWERGRID: "powergrid.in",
+  COALINDIA: "coalindia.in",
+  DRREDDY: "drreddys.com",
+  CIPLA: "cipla.com",
+  HINDALCO: "hindalco.com",
+  TATACONSUM: "tataconsumer.com",
+  APOLLOHOSP: "apollohospitals.com",
+  HEROMOTOCO: "heromotocorp.com",
+  BPCL: "bharatpetroleum.in",
+  NESTLEIND: "nestle.in",
+  ADANIENT: "adani.com",
+  ADANIPORTS: "adaniports.com",
+  ULTRACEMCO: "ultratechcement.com"
+});
+
+function normalizedStockSymbol(i) {
+  return String(i?.symbol || "").trim().toUpperCase().replace(/\.(NS|BO)$/i, "");
+}
+
 function stockIconText(i) {
-  const symbol = String(i?.symbol || "").trim();
+  const symbol = normalizedStockSymbol(i);
   const name = String(i?.name || "").trim();
-  if (symbol) return symbol.replace(/[^A-Za-z0-9]/g, "").slice(0, 2).toUpperCase() || "S";
+  if (symbol) return symbol.replace(/[^A-Z0-9]/g, "").slice(0, 2) || "S";
   const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("");
   return initials.toUpperCase() || "S";
 }
 
-function stockIconVariant(i) {
-  const seed = String(i?.symbol || i?.name || "stock");
-  let hash = 0;
-  for (let index = 0; index < seed.length; index += 1) hash = (hash * 31 + seed.charCodeAt(index)) >>> 0;
-  return "asset-icon-v" + ((hash % 6) + 1);
+function stockLogoUrl(i) {
+  const symbol = normalizedStockSymbol(i);
+  if (!symbol) return "";
+  const domain = STOCK_BRAND_DOMAINS[symbol];
+  if (domain) {
+    return "https://www.google.com/s2/favicons?sz=128&domain_url=" + encodeURIComponent("https://" + domain);
+  }
+  const exchange = String(i?.exchange || "").toUpperCase();
+  const suffix = exchange.includes("BSE") ? ".BO" : ".NS";
+  return "https://financialmodelingprep.com/image-stock/" + encodeURIComponent(symbol + suffix) + ".png";
+}
+
+function stockBrandHtml(i, extraClass = "") {
+  const src = stockLogoUrl(i);
+  const initials = stockIconText(i);
+  const symbol = normalizedStockSymbol(i) || String(i?.name || "Stock");
+  return '<span class="stock-brand ' + escapeHtml(extraClass) + '" title="' + escapeHtml(symbol) + '">' +
+    (src ? '<img class="stock-brand-logo" src="' + escapeHtml(src) + '" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">' : '') +
+    '<span class="stock-brand-fallback' + (src ? ' hidden' : '') + '" aria-hidden="true">' + escapeHtml(initials) + '</span>' +
+  '</span>';
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&");
+}
+
+function matchPortfolioStock(text) {
+  const haystack = " " + String(text || "").toUpperCase() + " ";
+  const stocks = (state.data?.positions || []).filter((p) => ["EQUITY", "ETF"].includes(p.instruments?.asset_type));
+  return stocks.map((p) => p.instruments || {}).find((i) => {
+    const symbol = normalizedStockSymbol(i);
+    if (symbol && new RegExp("(^|[^A-Z0-9])" + escapeRegExp(symbol) + "([^A-Z0-9]|$)").test(haystack)) return true;
+    const name = String(i.name || "").toUpperCase().replace(/\b(LTD|LIMITED|INDIA)\.?\b/g, "").trim();
+    return name.length >= 6 && haystack.includes(name);
+  }) || null;
+}
+
+function findPositionFromAction(item) {
+  const instrumentId = String(item?.dataset?.instrumentId || "");
+  const symbol = String(item?.dataset?.stockSymbol || "").toUpperCase();
+  return (state.data?.positions || []).find((p) => {
+    if (instrumentId && String(p.instrument_id ?? "") === instrumentId) return true;
+    return symbol && normalizedStockSymbol(p.instruments || {}) === symbol;
+  }) || null;
+}
+
+function marketQuoteUrl(i) {
+  const symbol = normalizedStockSymbol(i);
+  if (!symbol) return "";
+  const exchange = String(i?.exchange || "").toUpperCase();
+  if (exchange.includes("BSE")) return "https://www.google.com/finance/quote/" + encodeURIComponent(symbol) + ":BOM";
+  return "https://www.nseindia.com/get-quotes/equity?symbol=" + encodeURIComponent(symbol);
+}
+
+function fundamentalsUrl(i) {
+  const symbol = normalizedStockSymbol(i);
+  return symbol ? "https://www.screener.in/company/" + encodeURIComponent(symbol) + "/consolidated/" : "";
+}
+
+function openPositionDetails(p) {
+  if (!p) return;
+  const i = p.instruments || {};
+  const symbol = normalizedStockSymbol(i) || i.name || "Position";
+  $("infoDialogTitle").textContent = symbol + " position";
+  $("infoDialogBody").innerHTML =
+    '<div class="position-dialog-brand">' + stockBrandHtml(i, "stock-brand-dialog") +
+      '<div><strong>' + escapeHtml(i.name || symbol) + '</strong><small>' + escapeHtml([i.exchange, i.asset_type].filter(Boolean).join(" · ")) + '</small></div>' +
+    '</div>' +
+    '<div class="position-detail-grid">' +
+      '<div><span>Quantity</span><strong>' + escapeHtml(privateNumber(p.quantity)) + '</strong></div>' +
+      '<div><span>Average price</span><strong>' + escapeHtml(money(p.average_cost, true)) + '</strong></div>' +
+      '<div><span>LTP</span><strong>' + escapeHtml(money(p.close, true)) + '</strong></div>' +
+      '<div><span>Market value</span><strong>' + escapeHtml(money(p.market_value)) + '</strong></div>' +
+      '<div><span>Today</span><strong class="' + tone(p.day_change_pct) + '">' + escapeHtml(pct(p.day_change_pct)) + '</strong></div>' +
+      '<div><span>Tracked return</span><strong class="' + tone(p.unrealized_pnl) + '">' + escapeHtml(signedMoney(p.unrealized_pnl)) + '</strong></div>' +
+    '</div>';
+  if (!$("infoDialog").open) $("infoDialog").showModal();
 }
 
 function stockRow(p) {
   const i = p.instruments || {};
-  const symbol = i.symbol || i.name || "—";
+  const symbol = normalizedStockSymbol(i) || i.name || "—";
   const company = [i.name, i.exchange].filter(Boolean).join(" · ");
+  const instrumentId = String(p.instrument_id ?? "");
+  const marketLabel = String(i.exchange || "").toUpperCase().includes("BSE") ? "Market quote" : "NSE quote";
+  const fundamentals = i.asset_type === "EQUITY"
+    ? '<button type="button" role="menuitem" data-stock-action="fundamentals" data-instrument-id="' + escapeHtml(instrumentId) + '" data-stock-symbol="' + escapeHtml(symbol) + '"><span>Fundamentals</span><small>↗</small></button>'
+    : "";
   return '<div class="asset-row stock-grid">' +
     '<div class="holding-name holding-with-icon" data-label="Holding">' +
-      '<span class="asset-icon ' + stockIconVariant(i) + '" aria-hidden="true">' + escapeHtml(stockIconText(i)) + '</span>' +
+      stockBrandHtml(i, "stock-brand-row") +
       '<span class="holding-copy"><strong>' + escapeHtml(symbol) + '</strong><small>' + escapeHtml(company) + '</small></span>' +
     '</div>' +
     '<div data-label="Qty">' + escapeHtml(privateNumber(p.quantity)) + '</div>' +
@@ -858,10 +985,11 @@ function stockRow(p) {
     '<div data-label="Today" class="' + tone(p.day_change_pct) + '"><strong>' + escapeHtml(pct(p.day_change_pct)) + '</strong><small>' + (p.day_change == null ? "—" : escapeHtml(signedMoney(p.day_change))) + '</small></div>' +
     '<div data-label="Tracked change" class="' + tone(p.unrealized_pnl) + '"><strong>' + escapeHtml(signedMoney(p.unrealized_pnl)) + '</strong><small>' + escapeHtml(pct(p.return_pct)) + '</small></div>' +
     '<div class="asset-actions" data-label="Actions">' +
-      '<button class="stock-action-btn" type="button" aria-label="Actions for ' + escapeHtml(symbol) + '" aria-haspopup="menu" aria-expanded="false">•••</button>' +
+      '<button class="stock-action-btn" type="button" aria-label="Actions for ' + escapeHtml(symbol) + '" aria-haspopup="menu" aria-expanded="false">⋮</button>' +
       '<div class="stock-action-menu" role="menu" hidden>' +
-        '<button type="button" role="menuitem" data-stock-action="copy-symbol" data-stock-symbol="' + escapeHtml(symbol) + '">Copy symbol</button>' +
-        '<button type="button" role="menuitem" data-stock-action="copy-name" data-stock-name="' + escapeHtml(i.name || symbol) + '">Copy name</button>' +
+        '<button type="button" role="menuitem" data-stock-action="details" data-instrument-id="' + escapeHtml(instrumentId) + '" data-stock-symbol="' + escapeHtml(symbol) + '"><span>Position details</span><small>View</small></button>' +
+        '<button type="button" role="menuitem" data-stock-action="quote" data-instrument-id="' + escapeHtml(instrumentId) + '" data-stock-symbol="' + escapeHtml(symbol) + '"><span>' + escapeHtml(marketLabel) + '</span><small>↗</small></button>' +
+        fundamentals +
       '</div>' +
     '</div>' +
   '</div>';
