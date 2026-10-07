@@ -1678,3 +1678,63 @@ html[data-theme="light"] .daily-history-panel{
 html[data-theme="light"] .modern-select-trigger,html[data-theme="light"] .modern-select-direction{background:linear-gradient(180deg,#fff,#f7f9fc);border-color:#d8e0ea}
 html[data-theme="light"] .modern-select-trigger:hover,html[data-theme="light"] .modern-select-direction:hover{background:#f3f6fa;border-color:#c6d1de}
 html[data-theme="light"] .modern-select-menu{background:#fff;border-color:#d8e0ea;box-shadow:0 18px 40px rgba(40,57,78,.16)}
+
+
+/* Mobile holdings toolbar: keep sorting in its compact right-side slot */
+@media(max-width:680px){
+  .holdings-panel .toolbar{
+    flex-wrap:nowrap;
+    align-items:center;
+    gap:8px;
+    padding:11px;
+  }
+  .holdings-panel .search{
+    flex:1 1 auto;
+    width:auto;
+    min-width:0;
+    max-width:none;
+  }
+  .holdings-panel .search input{min-width:0}
+  .holdings-panel .modern-select{
+    display:grid;
+    grid-template-columns:minmax(104px,132px) 38px;
+    gap:6px;
+    width:auto;
+    min-width:148px;
+    flex:0 0 auto;
+  }
+  .holdings-panel .modern-select-trigger{
+    min-width:0;
+    min-height:42px;
+    padding:0 10px 0 12px;
+    gap:8px;
+  }
+  .holdings-panel .modern-select-label{
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .holdings-panel .modern-select-direction{
+    display:grid;
+    width:38px;
+    min-width:38px;
+    height:42px;
+    border-radius:12px;
+  }
+  .holdings-panel .modern-select-menu{
+    left:auto;
+    right:44px;
+    min-width:190px;
+  }
+}
+@media(max-width:390px){
+  .holdings-panel .modern-select{
+    grid-template-columns:minmax(88px,112px) 36px;
+    min-width:130px;
+    gap:5px;
+  }
+  .holdings-panel .modern-select-direction{
+    width:36px;
+    min-width:36px;
+  }
+  .holdings-panel .modern-select-label{font-size:12px}
+}
