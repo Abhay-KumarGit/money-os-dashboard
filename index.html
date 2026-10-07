@@ -13,7 +13,7 @@
   <link rel="dns-prefetch" href="//unavatar.io">
   <link rel="preconnect" href="https://icon.horse" crossorigin>
   <link rel="dns-prefetch" href="//icon.horse">
-  <link rel="stylesheet" href="styles.css?v=39">
+  <link rel="stylesheet" href="styles.css?v=40">
   <style id="sort-header-inline-style">
     .sort-header{display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:6px 0;border:0;background:transparent;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;white-space:nowrap;text-align:left}
     .sort-header:hover,.sort-header:focus-visible{color:#aeb9c7}
@@ -132,6 +132,94 @@
             <button class="info-button" type="button" data-info="market-movers" aria-label="About market movers">i</button>
           </div>
           <div id="movers" class="movers"></div>
+        </section>
+
+        <section class="insights-grid" aria-label="Portfolio intelligence">
+          <article class="panel insight-panel intelligence-panel">
+            <div class="panel-head compact-panel-head"><div><h2>Portfolio intelligence</h2><small class="muted">Tracked scope · data-gated</small></div></div>
+            <div class="insight-metrics">
+              <div class="insight-metric"><span>Portfolio score</span><strong id="portfolioScore">—</strong><small id="portfolioScoreNote">Verified dimensions only</small></div>
+              <div class="insight-metric"><span>Tracked XIRR</span><strong id="trackedXirr">—</strong><small>Since baseline</small></div>
+              <div class="insight-metric"><span>Benchmark</span><strong id="trackedBenchmark">—</strong><small>NIFTY 50 since baseline</small></div>
+              <div class="insight-metric"><span>Data quality</span><strong id="dataQualityScore">—</strong><small id="dataQualityNote">Checking coverage</small></div>
+            </div>
+            <div id="scoreDimensions" class="score-dimensions"></div>
+          </article>
+
+          <article class="panel insight-panel explain-panel">
+            <div class="panel-head compact-panel-head"><div><h2>Why did it move?</h2><small class="muted">Market move vs cash flow</small></div></div>
+            <div id="dayExplain" class="explain-list"></div>
+          </article>
+        </section>
+
+        <section class="insights-grid">
+          <article class="panel insight-panel">
+            <div class="panel-head compact-panel-head"><div><h2>Risk radar</h2><small class="muted">Concentration & allocation</small></div></div>
+            <div id="riskRadarList" class="risk-radar-list"></div>
+          </article>
+
+          <article class="panel insight-panel rebalance-panel">
+            <div class="panel-head compact-panel-head"><div><h2>Rebalancing</h2><small class="muted">Set targets, then direct the next contribution</small></div></div>
+            <form id="targetAllocationForm" class="target-form">
+              <label><span>Stocks %</span><input id="targetStocks" type="number" min="0" max="100" step="0.1" inputmode="decimal"></label>
+              <label><span>Mutual funds %</span><input id="targetFunds" type="number" min="0" max="100" step="0.1" inputmode="decimal"></label>
+              <label><span>Other %</span><input id="targetOther" type="number" min="0" max="100" step="0.1" inputmode="decimal"></label>
+              <button id="saveTargetsBtn" class="secondary compact-control" type="submit">Save targets</button>
+            </form>
+            <div class="contribution-row">
+              <label><span>Next contribution</span><input id="nextContribution" type="number" min="0" step="100" inputmode="decimal" placeholder="₹ amount"></label>
+              <div id="rebalanceSuggestion" class="rebalance-suggestion">Set targets to get a contribution-first rebalance suggestion.</div>
+            </div>
+            <p id="targetStatus" class="form-status hidden"></p>
+          </article>
+        </section>
+
+        <section class="panel insight-details-panel">
+          <div class="panel-head"><div><h2>Decision tools</h2></div><span class="muted">Verified scope</span></div>
+
+          <details class="insight-detail" open>
+            <summary><div><strong>P&amp;L &amp; tax readiness</strong><small>Know what is tracked vs tax-ready</small></div><span>⌄</span></summary>
+            <div id="taxReadiness" class="insight-detail-body"></div>
+          </details>
+
+          <details class="insight-detail">
+            <summary><div><strong>Income &amp; portfolio overlap</strong><small>Dividends and fund-stock duplication</small></div><span>⌄</span></summary>
+            <div id="incomeOverlap" class="insight-detail-body"></div>
+          </details>
+
+          <details class="insight-detail">
+            <summary><div><strong>Data provenance</strong><small>Source, market date and calculation scope</small></div><span>⌄</span></summary>
+            <div id="dataProvenance" class="insight-detail-body"></div>
+          </details>
+
+          <details class="insight-detail">
+            <summary><div><strong>Time machine</strong><small>Review verified historical snapshots</small></div><span>⌄</span></summary>
+            <div class="time-machine">
+              <label><span>Snapshot</span><select id="timeMachineDate" aria-label="Choose portfolio snapshot"></select></label>
+              <div id="timeMachineResult" class="time-machine-result"></div>
+            </div>
+          </details>
+
+          <details class="insight-detail">
+            <summary><div><strong>Household net worth</strong><small>Add assets or liabilities outside this portfolio</small></div><span>⌄</span></summary>
+            <div class="net-worth-summary">
+              <div><span>Tracked investments</span><strong id="netWorthPortfolio">—</strong></div>
+              <div><span>Other assets</span><strong id="netWorthAssets">—</strong></div>
+              <div><span>Liabilities</span><strong id="netWorthLiabilities">—</strong></div>
+              <div class="net-worth-total"><span>Estimated net worth</span><strong id="netWorthTotal">—</strong></div>
+            </div>
+            <form id="netWorthForm" class="net-worth-form">
+              <input id="netWorthName" type="text" maxlength="80" placeholder="Name (e.g. EPF)" required>
+              <select id="netWorthKind" aria-label="Asset or liability"><option value="asset">Asset</option><option value="liability">Liability</option></select>
+              <select id="netWorthCategory" aria-label="Category">
+                <option value="cash">Cash</option><option value="fd">FD</option><option value="ppf">PPF</option><option value="epf">EPF</option><option value="nps">NPS</option><option value="gold">Gold</option><option value="property">Property</option><option value="loan">Loan</option><option value="credit">Credit</option><option value="other">Other</option>
+              </select>
+              <input id="netWorthAmount" type="number" min="0" step="1" inputmode="decimal" placeholder="Amount" required>
+              <button id="addNetWorthBtn" class="secondary compact-control" type="submit">Add</button>
+            </form>
+            <div id="netWorthList" class="net-worth-list"></div>
+            <p id="netWorthStatus" class="form-status hidden"></p>
+          </details>
         </section>
 
       </section>
@@ -366,7 +454,7 @@
     <div id="learningDialogBody" class="learning-dialog-body"></div>
   </dialog>
 
-  <div id="toast" class="toast hidden"></div>
-  <script src="app.js?v=39" defer></script>
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  <script src="app.js?v=40" defer></script>
 </body>
 </html>
