@@ -452,8 +452,6 @@ function applyNavDock() {
   app.classList.toggle("nav-right", right);
   button.setAttribute("aria-label", right ? "Move navigation to the left" : "Move navigation to the right");
   button.title = right ? "Move navigation to the left" : "Move navigation to the right";
-  const label = button.querySelector("span");
-  if (label) label.textContent = right ? "Move left" : "Move right";
 }
 
 function toggleNavDock() {
