@@ -8,6 +8,7 @@ const THEME_KEY = "moneyos.theme";
 const NAV_DOCK_KEY = "moneyos.navDock";
 const REFRESH_STATUS_URL = "https://epyixyfcwdpkauenljle.supabase.co/functions/v1/daily-refresh-status";
 const HEALTH_URL = "https://epyixyfcwdpkauenljle.supabase.co/functions/v1/health";
+const PORTFOLIO_SETTINGS_URL = "https://epyixyfcwdpkauenljle.supabase.co/functions/v1/portfolio-settings";
 const MASK_TEXT = "••••••";
 
 const $ = (id) => document.getElementById(id);
@@ -27,6 +28,8 @@ let state = {
   dailyRefreshBusy: false,
   health: null,
   healthBusy: false,
+  portfolioSettings: null,
+  portfolioSettingsBusy: false,
   stockSortKey: "value",
   stockSortDirection: "desc",
   fundSortKey: "value",
@@ -426,10 +429,11 @@ async function loadSummary() {
   if (!response.ok) throw new Error("Portfolio API error " + response.status);
 
   state.data = await response.json();
-  await warmBrandImages(state.data);
   renderAll();
-  if (state.view === "daily") checkDailyRefreshStatus();
   showApp();
+  warmBrandImages(state.data).catch(() => {});
+  loadPortfolioSettings().catch((e) => console.error("Portfolio settings load failed", e));
+  if (state.view === "daily") checkDailyRefreshStatus();
   return true;
 }
 
@@ -485,6 +489,351 @@ function navigate(view) {
   if (view === "overview") setTimeout(drawChart, 50);
   if (view === "daily") checkDailyRefreshStatus();
   if (view === "settings") checkHealth();
+}
+
+async function portfolioSettingsRequest(payload = null) {
+  const session = getSession();
+  if (!session) throw new Error("Missing session");
+  const response = await fetch(PORTFOLIO_SETTINGS_URL, {
+    method: payload ? "POST" : "GET",
+    headers: {
+      authorization: "Bearer " + session,
+      ...(payload ? { "content-type": "application/json" } : {})
+    },
+    body: payload ? JSON.stringify(payload) : undefined,
+    cache: "no-store"
+  });
+  let body = {};
+  try { body = await response.json(); } catch {}
+  if (response.status === 401) {
+    clearSession();
+    showLocked("Session expired. Enter your password to continue.");
+  }
+  if (!response.ok) {
+    const err = new Error(body?.error || "Portfolio settings request failed");
+    err.status = response.status;
+    err.body = body;
+    throw err;
+  }
+  return body;
+}
+
+async function loadPortfolioSettings() {
+  if (state.portfolioSettingsBusy) return;
+  state.portfolioSettingsBusy = true;
+  try {
+    state.portfolioSettings = await portfolioSettingsRequest();
+    renderInsights();
+  } finally {
+    state.portfolioSettingsBusy = false;
+  }
+}
+
+function scoreLabel(value) {
+  if (value == null || !Number.isFinite(Number(value))) return "—";
+  if (state.masked) return "••••";
+  return Math.round(Number(value)) + "/100";
+}
+
+function cleanPercent(value, digits = 1) {
+  if (value == null || !Number.isFinite(Number(value))) return "—";
+  return state.masked ? "••••" : Number(value).toFixed(digits) + "%";
+}
+
+function renderScoreDimensions(dimensions = {}) {
+  const el = $("scoreDimensions");
+  if (!el) return;
+  const labels = {
+    diversification: "Diversification",
+    concentration: "Concentration",
+    cost: "Cost",
+    performance_vs_benchmark: "Vs benchmark",
+    data_quality: "Data quality"
+  };
+  el.innerHTML = Object.entries(labels).map(([key, label]) => {
+    const value = dimensions?.[key];
+    const unavailable = value == null || !Number.isFinite(Number(value));
+    return '<div class="score-dimension"><span>' + escapeHtml(label) + '</span><strong>' +
+      (unavailable ? "—" : escapeHtml(scoreLabel(value))) + '</strong></div>';
+  }).join("");
+}
+
+function renderRiskRadar(analytics) {
+  const el = $("riskRadarList");
+  if (!el) return;
+  const risk = analytics?.risk || {};
+  const concentration = analytics?.concentration || {};
+  const alerts = Array.isArray(risk.alerts) ? risk.alerts : [];
+  const summary = [
+    { title: "Largest position", value: cleanPercent(concentration.top_position_pct), detail: "Single-position exposure" },
+    { title: "Top 3", value: cleanPercent(concentration.top3_pct), detail: "Combined concentration" },
+    { title: "Direct stocks", value: cleanPercent(risk.stock_pct), detail: "Tracked portfolio share" },
+    { title: "Mutual funds", value: cleanPercent(risk.mutual_fund_pct), detail: "Tracked portfolio share" }
+  ];
+  const summaryHtml = '<div class="risk-stats">' + summary.map((x) =>
+    '<div><span>' + escapeHtml(x.title) + '</span><strong>' + escapeHtml(x.value) + '</strong><small>' + escapeHtml(x.detail) + '</small></div>'
+  ).join("") + '</div>';
+  const alertHtml = alerts.length
+    ? '<div class="risk-alerts">' + alerts.map((x) =>
+        '<div class="risk-alert ' + escapeHtml(x.level || "medium") + '"><span></span><div><strong>' +
+        escapeHtml(x.title || "Attention") + '</strong><small>' + escapeHtml(x.detail || "") + '</small></div></div>'
+      ).join("") + '</div>'
+    : '<div class="empty-inline">No material concentration warning from the verified data.</div>';
+  el.innerHTML = summaryHtml + alertHtml;
+}
+
+function renderDayExplain(analytics) {
+  const el = $("dayExplain");
+  if (!el) return;
+  const x = analytics?.day_explain || {};
+  const rows = [
+    ["Market movement", x.market_move == null ? "—" : signedMoney(x.market_move), "Price/NAV movement"],
+    ["Net contributions", signedMoney(x.net_contribution || 0), "Buys less sells"],
+    ["Portfolio value change", x.value_delta == null ? "—" : signedMoney(x.value_delta), "Vs previous verified snapshot"]
+  ];
+  el.innerHTML = rows.map(([label, value, detail]) =>
+    '<div class="explain-row"><div><strong>' + escapeHtml(label) + '</strong><small>' + escapeHtml(detail) +
+    '</small></div><span>' + escapeHtml(value) + '</span></div>'
+  ).join("");
+}
+
+function readTargets() {
+  const prefs = state.portfolioSettings?.preferences || {};
+  const values = [
+    Number(prefs.target_stocks),
+    Number(prefs.target_mutual_funds),
+    Number(prefs.target_other)
+  ];
+  return values.every(Number.isFinite) ? values : null;
+}
+
+function renderRebalance() {
+  const d = state.data;
+  if (!d) return;
+  const total = num(d.latest?.total_value);
+  const metrics = d.metrics || {};
+  const current = [
+    num(metrics.stocks?.value),
+    num(metrics.mutual_funds?.value),
+    num(metrics.other?.value)
+  ];
+  const fields = [$("targetStocks"), $("targetFunds"), $("targetOther")];
+  const targets = readTargets();
+  current.forEach((value, index) => {
+    if (!fields[index]) return;
+    const share = total ? value / total * 100 : 0;
+    fields[index].placeholder = share.toFixed(1);
+    if (targets && document.activeElement !== fields[index]) fields[index].value = String(targets[index]);
+  });
+
+  const out = $("rebalanceSuggestion");
+  if (!out) return;
+  const contribution = Math.max(0, num($("nextContribution")?.value));
+  if (!targets) {
+    out.textContent = "Save targets to get a contribution-first rebalance suggestion.";
+    return;
+  }
+  if (!contribution) {
+    out.textContent = "Enter your next contribution amount to see where it can reduce allocation drift.";
+    return;
+  }
+  const projectedTotal = total + contribution;
+  const gaps = targets.map((target, i) => Math.max(0, projectedTotal * target / 100 - current[i]));
+  const gapTotal = gaps.reduce((a, b) => a + b, 0);
+  if (!gapTotal) {
+    out.textContent = "Current allocation is at or above all saved targets; review targets before adding more.";
+    return;
+  }
+  const labels = ["Stocks", "Mutual funds", "Other"];
+  const allocations = gaps.map((gap, i) => ({ label: labels[i], amount: contribution * gap / gapTotal }))
+    .filter((x) => x.amount >= 1);
+  out.innerHTML = '<strong>Contribution-first suggestion</strong>' + allocations.map((x) =>
+    '<span>' + escapeHtml(x.label) + '<b>' + escapeHtml(money(x.amount)) + '</b></span>'
+  ).join("");
+}
+
+async function saveTargets(event) {
+  event?.preventDefault();
+  const values = [
+    Number($("targetStocks")?.value),
+    Number($("targetFunds")?.value),
+    Number($("targetOther")?.value)
+  ];
+  const status = $("targetStatus");
+  if (!values.every(Number.isFinite) || values.some((x) => x < 0 || x > 100)) {
+    setFormStatus(status, "Enter a target from 0–100 for each bucket.", false);
+    return;
+  }
+  if (Math.abs(values.reduce((a, b) => a + b, 0) - 100) > 0.01) {
+    setFormStatus(status, "Targets must total 100%.", false);
+    return;
+  }
+  const button = $("saveTargetsBtn");
+  button.disabled = true;
+  try {
+    state.portfolioSettings = await portfolioSettingsRequest({
+      action: "save_targets",
+      target_stocks: values[0],
+      target_mutual_funds: values[1],
+      target_other: values[2]
+    });
+    setFormStatus(status, "Targets saved.", true);
+    renderRebalance();
+  } catch (e) {
+    setFormStatus(status, "Could not save targets.", false);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function renderTaxReadiness(analytics) {
+  const el = $("taxReadiness");
+  if (!el) return;
+  const tax = analytics?.tax || {};
+  const quality = analytics?.data_quality || {};
+  el.innerHTML =
+    '<div class="detail-stat-grid">' +
+      '<div><span>Tracked unrealized</span><strong>' + escapeHtml(signedMoney(tax.tracked_unrealized_pnl || 0)) + '</strong></div>' +
+      '<div><span>Tracked realized</span><strong>' + escapeHtml(signedMoney(tax.tracked_realized_pnl || 0)) + '</strong></div>' +
+      '<div><span>Confirmed sells</span><strong>' + escapeHtml(state.masked ? "••••" : String(quality.sells ?? 0)) + '</strong></div>' +
+      '<div><span>Fee coverage</span><strong>' + escapeHtml(cleanPercent(quality.fee_coverage_pct)) + '</strong></div>' +
+    '</div>' +
+    '<div class="readiness-note ' + (tax.tax_ready ? "ready" : "limited") + '"><strong>' +
+      (tax.tax_ready ? "Tax-ready" : "Not tax-filing ready") + '</strong><span>' + escapeHtml(tax.reason || "") + '</span></div>';
+}
+
+function renderIncomeOverlap(analytics) {
+  const el = $("incomeOverlap");
+  if (!el) return;
+  const income = analytics?.income || {};
+  const overlap = analytics?.overlap || {};
+  el.innerHTML =
+    '<div class="readiness-stack">' +
+      '<div class="readiness-note ' + (income.available ? "ready" : "limited") + '"><strong>Dividend & passive income</strong><span>' +
+        escapeHtml(income.available ? money(income.verified_dividend_income || 0) : income.reason || "Not available") + '</span></div>' +
+      '<div class="readiness-note ' + (overlap.available ? "ready" : "limited") + '"><strong>Stock + fund overlap</strong><span>' +
+        escapeHtml(overlap.reason || "Available") + '</span></div>' +
+    '</div>';
+}
+
+function renderProvenance(analytics) {
+  const el = $("dataProvenance");
+  if (!el) return;
+  const p = analytics?.provenance || {};
+  const sources = Array.isArray(p.price_sources) && p.price_sources.length ? p.price_sources.join(", ") : "—";
+  el.innerHTML =
+    '<div class="provenance-list">' +
+      '<div><span>Portfolio snapshot</span><strong>' + escapeHtml(dateLabel(p.portfolio_snapshot_date)) + '</strong></div>' +
+      '<div><span>Verified market date</span><strong>' + escapeHtml(dateLabel(p.market_date)) + '</strong></div>' +
+      '<div><span>Price sources</span><strong>' + escapeHtml(sources) + '</strong></div>' +
+      '<div><span>Performance basis</span><strong>' + escapeHtml(p.basis || "—") + '</strong></div>' +
+      '<div><span>Scope</span><strong>' + escapeHtml(p.scope || "Tracked portfolio") + '</strong></div>' +
+    '</div>';
+}
+
+function renderTimeMachine() {
+  const select = $("timeMachineDate");
+  const result = $("timeMachineResult");
+  if (!select || !result) return;
+  const history = Array.isArray(state.data?.history) ? state.data.history : [];
+  const selected = select.value;
+  select.innerHTML = history.slice().reverse().map((row) =>
+    '<option value="' + escapeHtml(row.snapshot_date) + '">' + escapeHtml(dateLabel(row.snapshot_date)) + '</option>'
+  ).join("");
+  if (selected && history.some((x) => x.snapshot_date === selected)) select.value = selected;
+  const row = history.find((x) => x.snapshot_date === select.value) || history[history.length - 1];
+  if (!row) {
+    result.innerHTML = '<div class="empty-inline">Verified history will appear as snapshots accumulate.</div>';
+    return;
+  }
+  result.innerHTML =
+    '<div><span>Portfolio value</span><strong>' + escapeHtml(money(row.total_value)) + '</strong></div>' +
+    '<div><span>Tracked basis</span><strong>' + escapeHtml(money(row.total_cost)) + '</strong></div>' +
+    '<div><span>Tracked change</span><strong class="' + tone(row.unrealized_pnl) + '">' + escapeHtml(signedMoney(row.unrealized_pnl)) + '</strong></div>' +
+    '<div><span>Market day</span><strong>' + escapeHtml(row.day_change_pct == null ? "—" : pct(row.day_change_pct)) + '</strong></div>';
+}
+
+function renderNetWorth() {
+  const items = Array.isArray(state.portfolioSettings?.net_worth_items) ? state.portfolioSettings.net_worth_items : [];
+  const portfolio = num(state.data?.latest?.total_value);
+  const assets = items.filter((x) => x.kind === "asset").reduce((sum, x) => sum + num(x.amount), 0);
+  const liabilities = items.filter((x) => x.kind === "liability").reduce((sum, x) => sum + num(x.amount), 0);
+  if ($("netWorthPortfolio")) $("netWorthPortfolio").textContent = money(portfolio);
+  if ($("netWorthAssets")) $("netWorthAssets").textContent = money(assets);
+  if ($("netWorthLiabilities")) $("netWorthLiabilities").textContent = money(liabilities);
+  if ($("netWorthTotal")) $("netWorthTotal").textContent = money(portfolio + assets - liabilities);
+  const list = $("netWorthList");
+  if (!list) return;
+  list.innerHTML = items.length ? items.map((item) =>
+    '<div class="net-worth-row"><div><strong>' + escapeHtml(item.name) + '</strong><small>' +
+    escapeHtml(item.category + " · " + item.kind) + '</small></div><span>' + escapeHtml(money(item.amount)) +
+    '</span><button type="button" class="net-worth-delete" data-net-worth-delete="' + escapeHtml(item.id) +
+    '" aria-label="Delete ' + escapeHtml(item.name) + '">×</button></div>'
+  ).join("") : '<div class="empty-inline">No external assets or liabilities added.</div>';
+}
+
+async function addNetWorthItem(event) {
+  event?.preventDefault();
+  const status = $("netWorthStatus");
+  const payload = {
+    action: "add_net_worth_item",
+    name: $("netWorthName")?.value.trim(),
+    kind: $("netWorthKind")?.value,
+    category: $("netWorthCategory")?.value,
+    amount: Number($("netWorthAmount")?.value)
+  };
+  if (!payload.name || !Number.isFinite(payload.amount) || payload.amount < 0) {
+    setFormStatus(status, "Enter a name and valid amount.", false);
+    return;
+  }
+  const button = $("addNetWorthBtn");
+  button.disabled = true;
+  try {
+    state.portfolioSettings = await portfolioSettingsRequest(payload);
+    $("netWorthName").value = "";
+    $("netWorthAmount").value = "";
+    setFormStatus(status, "Added to household net worth.", true);
+    renderNetWorth();
+  } catch {
+    setFormStatus(status, "Could not add this item.", false);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+async function deleteNetWorthItem(id) {
+  if (!id) return;
+  try {
+    state.portfolioSettings = await portfolioSettingsRequest({ action: "delete_net_worth_item", id });
+    renderNetWorth();
+    showToast("Net worth item removed");
+  } catch {
+    showToast("Could not remove item");
+  }
+}
+
+function renderInsights() {
+  if (!state.data) return;
+  const a = state.data.analytics || {};
+  if ($("portfolioScore")) $("portfolioScore").textContent = scoreLabel(a.score?.overall);
+  if ($("trackedXirr")) $("trackedXirr").textContent = a.returns?.tracked_xirr_pct == null ? "—" : pct(a.returns.tracked_xirr_pct);
+  if ($("trackedBenchmark")) $("trackedBenchmark").textContent = a.returns?.benchmark_tracked_return_pct == null ? "—" : pct(a.returns.benchmark_tracked_return_pct);
+  if ($("dataQualityScore")) $("dataQualityScore").textContent = scoreLabel(a.data_quality?.score);
+  if ($("dataQualityNote")) {
+    const q = a.data_quality || {};
+    $("dataQualityNote").textContent = q.stale_positions
+      ? q.stale_positions + " stale position" + (q.stale_positions === 1 ? "" : "s")
+      : "Prices current for verified session";
+  }
+  renderScoreDimensions(a.score?.dimensions || {});
+  renderDayExplain(a);
+  renderRiskRadar(a);
+  renderRebalance();
+  renderTaxReadiness(a);
+  renderIncomeOverlap(a);
+  renderProvenance(a);
+  renderTimeMachine();
+  renderNetWorth();
 }
 
 function renderAll() {
@@ -546,6 +895,7 @@ function renderAll() {
   renderActivity();
   renderSettings();
   renderRecommendations();
+  renderInsights();
   drawChart();
 
 
@@ -1090,6 +1440,7 @@ function matchPortfolioInstrument(text) {
 }
 
 function warmBrandImages(data) {
+  if (!("Image" in window)) return Promise.resolve();
   const positions = Array.isArray(data?.positions) ? data.positions : [];
   const urls = [...new Set(positions.map((p) => instrumentBrandLogoUrl(p.instruments || {})).filter(Boolean))];
   if (!urls.length) return Promise.resolve();
@@ -1963,6 +2314,10 @@ function bindEvents() {
   $("privacyToggle").addEventListener("click", togglePrivacy);
   $("dailyRefreshBtn")?.addEventListener("click", refreshDailyReport);
   $("healthCheckBtn")?.addEventListener("click", checkHealth);
+  $("targetAllocationForm")?.addEventListener("submit", saveTargets);
+  $("nextContribution")?.addEventListener("input", renderRebalance);
+  $("timeMachineDate")?.addEventListener("change", renderTimeMachine);
+  $("netWorthForm")?.addEventListener("submit", addNetWorthItem);
   $("privacySettingsBtn").addEventListener("click", togglePrivacy);
   $("navDockToggle")?.addEventListener("click", toggleNavDock);
   $("dailyHistoryTabs")?.addEventListener("click", (e) => {
@@ -2045,6 +2400,12 @@ function bindEvents() {
     button.addEventListener("click", () => setHoldingSort(button.dataset.sortTable, button.dataset.sortKey));
   });
   document.addEventListener("click", async (event) => {
+    const netWorthDelete = event.target.closest("[data-net-worth-delete]");
+    if (netWorthDelete) {
+      await deleteNetWorthItem(netWorthDelete.dataset.netWorthDelete);
+      return;
+    }
+
     const actionButton = event.target.closest(".stock-action-btn");
     if (actionButton) {
       const actions = actionButton.closest(".asset-actions");
