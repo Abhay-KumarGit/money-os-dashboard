@@ -1300,3 +1300,38 @@ html[data-theme="light"] .daily-history-panel{
   }
   .nav-rail-head .nav-dock-toggle::before{display:none}
 }
+
+
+/* Fill the desktop navigation rail vertically with the navigation tabs */
+@media (min-width: 901px){
+  .nav-rail{
+    height:calc(100dvh - 118px);
+    min-height:560px;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .nav-rail-head{
+    flex:0 0 auto;
+  }
+
+  .nav-rail .tabs{
+    flex:1 1 auto;
+    min-height:0;
+    display:flex !important;
+    flex-direction:column;
+  }
+
+  .nav-rail .tabs button{
+    flex:1 1 0;
+    min-height:72px;
+    display:flex;
+    align-items:center;
+    padding-block:14px;
+  }
+
+  .nav-rail .tabs button.active::before{
+    top:22%;
+    bottom:22%;
+  }
+}
