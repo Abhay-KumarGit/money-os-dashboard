@@ -876,13 +876,122 @@ function dailyText(value) {
   return maskDailyFinancialText(professionalDailyText(value));
 }
 
+function normalizeLesson(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  return raw;
+}
+
+function learningButtonHtml(lesson) {
+  const normalized = normalizeLesson(lesson);
+  if (!normalized) return "";
+  return '<button class="learn-this-btn" type="button" data-learn="' +
+    escapeHtml(JSON.stringify(normalized)) + '">Learn this ↗</button>';
+}
+
+function configureLearningButton(button, lesson) {
+  if (!button) return;
+  const normalized = normalizeLesson(lesson);
+  button.classList.toggle("hidden", !normalized);
+  if (normalized) button.dataset.learn = JSON.stringify(normalized);
+  else button.removeAttribute("data-learn");
+}
+
+function learningText(value) {
+  return escapeHtml(dailyText(value));
+}
+
+function safeLearningUrl(value) {
+  try {
+    const url = new URL(String(value || ""));
+    return ["http:", "https:"].includes(url.protocol) ? url.href : "";
+  } catch {
+    return "";
+  }
+}
+
+function learningLessonHtml(raw) {
+  const lesson = normalizeLesson(raw);
+  if (!lesson) return '<p class="learning-empty">No lesson was saved for this item.</p>';
+
+  const parts = [];
+  const intro = lesson.intro || lesson.plain_english || lesson.meaning || "";
+  if (intro) parts.push('<p class="learning-intro">' + learningText(intro) + '</p>');
+
+  const why = lesson.why_it_matters || lesson.why || "";
+  if (why) parts.push('<section class="learning-section"><h4>Why this matters here</h4><p>' + learningText(why) + '</p></section>');
+
+  const sections = Array.isArray(lesson.sections) ? lesson.sections : [];
+  sections.forEach((section) => {
+    if (!section || typeof section !== "object") return;
+    let body = "";
+    if (section.body) body += '<p>' + learningText(section.body) + '</p>';
+    if (Array.isArray(section.bullets) && section.bullets.length) {
+      body += '<ul>' + section.bullets.map((x) => '<li>' + learningText(x) + '</li>').join("") + '</ul>';
+    }
+    if (body) parts.push('<section class="learning-section"><h4>' + learningText(section.title || "Learn") + '</h4>' + body + '</section>');
+  });
+
+  if (Array.isArray(lesson.bullets) && lesson.bullets.length) {
+    parts.push('<section class="learning-section"><h4>Key idea</h4><ul>' +
+      lesson.bullets.map((x) => '<li>' + learningText(x) + '</li>').join("") + '</ul></section>');
+  }
+
+  const terms = Array.isArray(lesson.terms) ? lesson.terms : [];
+  if (terms.length) {
+    parts.push('<section class="learning-section"><h4>Terms to remember</h4><div class="learning-terms">' +
+      terms.map((x) => {
+        if (typeof x === "string") return '<div><strong>' + learningText(x) + '</strong></div>';
+        return '<div><strong>' + learningText(x?.term || "Term") + '</strong><span>' + learningText(x?.meaning || x?.definition || "") + '</span></div>';
+      }).join("") + '</div></section>');
+  }
+
+  if (lesson.diagram) {
+    parts.push('<section class="learning-section"><h4>Visual</h4><pre class="learning-diagram">' +
+      learningText(lesson.diagram) + '</pre></section>');
+  }
+
+  if (lesson.example) {
+    const example = typeof lesson.example === "string" ? lesson.example : (lesson.example.body || lesson.example.text || "");
+    if (example) parts.push('<section class="learning-section"><h4>Example</h4><div class="learning-example">' + learningText(example) + '</div></section>');
+  }
+
+  if (lesson.takeaway || lesson.remember) {
+    parts.push('<div class="learning-takeaway"><span>Remember</span><strong>' +
+      learningText(lesson.takeaway || lesson.remember) + '</strong></div>');
+  }
+
+  const sources = Array.isArray(lesson.sources) ? lesson.sources : [];
+  const sourceLinks = sources.map((source) => {
+    const href = safeLearningUrl(typeof source === "string" ? source : source?.url);
+    if (!href) return "";
+    const title = typeof source === "string" ? "Read more" : (source.title || source.label || "Read more");
+    return '<a href="' + escapeHtml(href) + '" target="_blank" rel="noopener noreferrer">' + learningText(title) + ' ↗</a>';
+  }).filter(Boolean);
+  if (sourceLinks.length) {
+    parts.push('<section class="learning-section learning-sources"><h4>Go deeper</h4>' + sourceLinks.join("") + '</section>');
+  }
+
+  return parts.join("") || '<p class="learning-empty">No lesson was saved for this item.</p>';
+}
+
+function openLearningDialog(raw) {
+  const lesson = normalizeLesson(raw);
+  if (!lesson) return;
+  $("learningDialogTitle").textContent = lesson.title || lesson.topic || "Learn this";
+  const meta = [lesson.duration, lesson.format].filter(Boolean).join(" · ");
+  $("learningDialogMeta").textContent = meta || "Finance, made simple";
+  $("learningDialogBody").innerHTML = learningLessonHtml(lesson);
+  if (!$("learningDialog").open) $("learningDialog").showModal();
+}
+
 function recommendationItem(item) {
-  if (typeof item === "string") return { title: item, detail: "", priority: "" };
-  if (!item || typeof item !== "object") return { title: "Update", detail: String(item ?? ""), priority: "" };
+  if (typeof item === "string") return { title: item, detail: "", priority: "", learn: null };
+  if (!item || typeof item !== "object") return { title: "Update", detail: String(item ?? ""), priority: "", learn: null };
   return {
     title: item.title || item.action || item.label || item.name || "Update",
     detail: item.detail || item.description || item.reason || item.note || "",
-    priority: String(item.priority || item.status || "").toLowerCase()
+    priority: String(item.priority || item.status || "").toLowerCase(),
+    learn: normalizeLesson(item.learn || item.learning)
   };
 }
 
@@ -898,8 +1007,9 @@ function recommendationRows(items, kind = "action") {
     const priorityClass = ["high", "urgent", "attention", "risk"].includes(item.priority)
       ? "attention"
       : ["medium", "watch", "monitor"].includes(item.priority) ? "watch" : "calm";
-    return '<div class="daily-list-item"><span class="daily-bullet ' + priorityClass + '" aria-hidden="true"></span><div><strong>' +
-      escapeHtml(dailyText(item.title)) + '</strong>' + (item.detail ? '<p>' + escapeHtml(dailyText(item.detail)) + '</p>' : '') + '</div></div>';
+    return '<div class="daily-list-item"><span class="daily-bullet ' + priorityClass + '" aria-hidden="true"></span><div class="daily-item-copy"><strong>' +
+      escapeHtml(dailyText(item.title)) + '</strong>' + (item.detail ? '<p>' + escapeHtml(dailyText(item.detail)) + '</p>' : '') +
+      learningButtonHtml(item.learn) + '</div></div>';
   }).join("");
 }
 
@@ -1067,7 +1177,8 @@ function renderDailyHistory(previous) {
     escapeHtml(dateLabel(r.recommendation_date)) + '</strong><span>' + escapeHtml("Daily Report - " + reportDateLabel(r.recommendation_date)) +
     '</span></div><small>' + escapeHtml(statusLabel + " · " + actions.length + (actions.length === 1 ? " action" : " actions")) +
     '</small></div><p>' + escapeHtml(dailyText(r.summary || "No summary saved.")) +
-    '</p><div class="history-section"><span>Context</span><div class="daily-list">' + recommendationRows(r.highlights, "context") +
+    '</p>' + learningButtonHtml(r.learning?.summary) +
+    '<div class="history-section"><span>Context</span><div class="daily-list">' + recommendationRows(r.highlights, "context") +
     '</div></div><div class="history-section"><span>Risks</span><div class="daily-list">' + recommendationRows(risksForDay, "risk") +
     '</div></div><div class="history-section"><span>Actions</span><div class="daily-list">' + recommendationRows(actions, "action") +
     '</div></div></div>';
@@ -1093,6 +1204,7 @@ function renderRecommendations() {
   $("dailyLatestDate").textContent = dateLabel(latest.recommendation_date);
   $("dailyTitle").textContent = "Daily Report - " + reportDateLabel(latest.recommendation_date);
   $("dailySummary").textContent = dailyText(latest.summary || "No summary was saved for this run.");
+  configureLearningButton($("dailySummaryLearn"), latest.learning?.summary);
   $("dailyGeneratedAt").textContent = dateTimeLabel(latest.generated_at || latest.updated_at);
   const status = $("dailyTradingStatus");
   status.textContent = latest.trading_day ? "Trading day" : "Market closed";
@@ -1281,6 +1393,12 @@ function bindEvents() {
   $("cancelPrivacyPin").addEventListener("click", () => { state.pendingPrivacyHide = false; state.pendingPrivacyReveal = false; $("privacyPinDialog").close(); });
   document.querySelectorAll(".info-button").forEach((el) => el.addEventListener("click", () => openInfo(el.dataset.info)));
   $("closeInfoDialog").addEventListener("click", () => $("infoDialog").close());
+  $("closeLearningDialog")?.addEventListener("click", () => $("learningDialog").close());
+  document.addEventListener("click", (e) => {
+    const button = e.target.closest(".learn-this-btn");
+    if (!button?.dataset.learn) return;
+    try { openLearningDialog(JSON.parse(button.dataset.learn)); } catch (err) { console.error("Invalid learning module", err); }
+  });
   $("stockSearch").addEventListener("input", renderStocks);
   $("stockSort").addEventListener("change", renderStocks);
   $("fundSearch").addEventListener("input", renderFunds);
