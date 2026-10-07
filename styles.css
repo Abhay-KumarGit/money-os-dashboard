@@ -796,3 +796,30 @@ html[data-theme="light"] .daily-summary{color:#34455b}
   .daily-refresh-btn svg{width:22px;height:22px}
   .daily-refresh-btn span{display:none}
 }
+
+/* Settings health checker */
+.health-card{grid-column:1/-1}
+.health-card .settings-compact-head>div{display:grid;gap:2px}
+.health-card .settings-compact-head small{font-size:10px;color:var(--muted)}
+.health-summary{display:flex;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--border-soft)}
+.health-summary>div{display:grid;gap:2px}
+.health-summary strong{font-size:13px}
+.health-summary small{font-size:10px;color:var(--muted)}
+.health-list{display:grid}
+.health-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--border-soft)}
+.health-main{display:grid;gap:2px;min-width:0}
+.health-main strong{font-size:12px;font-weight:650}
+.health-main small{font-size:10px;line-height:1.4;color:var(--muted);overflow-wrap:anywhere}
+.health-dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:#778395;box-shadow:0 0 0 5px rgba(119,131,149,.08)}
+.health-dot.healthy{background:var(--positive);box-shadow:0 0 0 5px rgba(67,209,141,.08)}
+.health-dot.degraded{background:#f4b85f;box-shadow:0 0 0 5px rgba(244,184,95,.08)}
+.health-dot.down{background:var(--negative);box-shadow:0 0 0 5px rgba(255,103,114,.08)}
+.health-state{font-size:10px;font-weight:700;white-space:nowrap}
+.health-state.healthy{color:var(--positive)}
+.health-state.degraded{color:#f4b85f}
+.health-state.down{color:var(--negative)}
+.health-state.unknown{color:var(--muted)}
+@media(max-width:560px){
+  .health-row{grid-template-columns:auto minmax(0,1fr)}
+  .health-state{grid-column:2}
+}
