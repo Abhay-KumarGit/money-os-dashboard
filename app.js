@@ -6,6 +6,7 @@ const REMEMBER_KEY = "moneyos.remember";
 const PRIVACY_KEY = "moneyos.privacyMask";
 const THEME_KEY = "moneyos.theme";
 const REFRESH_STATUS_URL = "https://epyixyfcwdpkauenljle.supabase.co/functions/v1/daily-refresh-status";
+const HEALTH_URL = "https://epyixyfcwdpkauenljle.supabase.co/functions/v1/health";
 const MASK_TEXT = "••••••";
 
 const $ = (id) => document.getElementById(id);
@@ -20,7 +21,9 @@ let state = {
   pendingPrivacyHide: false,
   pendingPrivacyReveal: false,
   dailyRefreshStatus: null,
-  dailyRefreshBusy: false
+  dailyRefreshBusy: false,
+  health: null,
+  healthBusy: false
 };
 
 let dailyRefreshPollTimer = null;
@@ -445,6 +448,7 @@ function navigate(view) {
   window.scrollTo({ top: 0, behavior: "smooth" });
   if (view === "overview") setTimeout(drawChart, 50);
   if (view === "daily") checkDailyRefreshStatus();
+  if (view === "settings") checkHealth();
 }
 
 function renderAll() {
@@ -669,6 +673,79 @@ function renderSettings() {
   $("sessionExpiry").textContent = s.session_expires_at ? dateTimeLabel(s.session_expires_at) : "Current session";
   $("rememberState").textContent = isRemembered() ? "On · 7 days" : "Off · this tab";
   updatePrivacyControls();
+}
+
+function healthStatusLabel(status) {
+  if (status === "healthy") return "Active";
+  if (status === "degraded") return "Needs attention";
+  if (status === "down") return "Down";
+  return "Unknown";
+}
+
+function renderHealth() {
+  const summary = $("healthSummary");
+  const list = $("healthList");
+  const btn = $("healthCheckBtn");
+  if (!summary || !list || !btn) return;
+
+  btn.disabled = state.healthBusy;
+  btn.textContent = state.healthBusy ? "Checking…" : "Check now";
+
+  if (state.healthBusy && !state.health) {
+    summary.innerHTML = '<span class="health-dot unknown"></span><div><strong>Checking services…</strong><small>Running live availability and freshness checks.</small></div>';
+    list.innerHTML = "";
+    return;
+  }
+
+  const h = state.health;
+  if (!h) {
+    summary.innerHTML = '<span class="health-dot unknown"></span><div><strong>Not checked yet</strong><small>Run a health check to verify Money OS services.</small></div>';
+    list.innerHTML = "";
+    return;
+  }
+
+  const overall = healthStatusLabel(h.overall);
+  const counts = h.counts || {};
+  summary.innerHTML = '<span class="health-dot ' + escapeHtml(h.overall || "unknown") + '"></span><div><strong>' +
+    escapeHtml(overall) + '</strong><small>' +
+    escapeHtml((counts.healthy || 0) + " active · " + (counts.degraded || 0) + " attention · " + (counts.down || 0) + " down") +
+    '</small></div>';
+
+  const services = Array.isArray(h.services) ? h.services : [];
+  list.innerHTML = services.map((s) =>
+    '<div class="health-row"><span class="health-dot ' + escapeHtml(s.status || "unknown") + '"></span><div class="health-main"><strong>' +
+    escapeHtml(s.display_name || s.service_key || "Service") + '</strong><small>' +
+    escapeHtml(s.detail || "No detail available.") + '</small></div><span class="health-state ' +
+    escapeHtml(s.status || "unknown") + '">' + escapeHtml(healthStatusLabel(s.status)) + '</span></div>'
+  ).join("");
+}
+
+async function checkHealth() {
+  const session = getSession();
+  if (!session || state.healthBusy) return null;
+  state.healthBusy = true;
+  renderHealth();
+  try {
+    const response = await fetch(HEALTH_URL, {
+      headers: { authorization: "Bearer " + session },
+      cache: "no-store"
+    });
+    if (response.status === 401) return null;
+    if (!response.ok) throw new Error("Health API error " + response.status);
+    state.health = await response.json();
+    return state.health;
+  } catch (e) {
+    console.error("Health check failed", e);
+    state.health = {
+      overall: "down",
+      counts: { healthy: 0, degraded: 0, down: 1, unknown: 0 },
+      services: [{ service_key: "health_api", display_name: "Health checker", status: "down", detail: "Health API could not be reached." }]
+    };
+    return state.health;
+  } finally {
+    state.healthBusy = false;
+    renderHealth();
+  }
 }
 
 const INFO_COPY = {
@@ -1136,6 +1213,7 @@ function bindEvents() {
   $("themeToggle").addEventListener("click", toggleTheme);
   $("privacyToggle").addEventListener("click", togglePrivacy);
   $("dailyRefreshBtn")?.addEventListener("click", refreshDailyReport);
+  $("healthCheckBtn")?.addEventListener("click", checkHealth);
   $("privacySettingsBtn").addEventListener("click", togglePrivacy);
   $("privacyUnlockForm").addEventListener("submit", (e) => { e.preventDefault(); unlockPrivacy(); });
   $("closePrivacyUnlockDialog").addEventListener("click", () => $("privacyUnlockDialog").close());
