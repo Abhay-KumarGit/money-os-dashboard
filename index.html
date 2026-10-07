@@ -130,8 +130,15 @@
           <article class="summary-stat"><div class="summary-label"><span>Realized</span><button class="info-button" type="button" data-info="stock-realized" aria-label="What does realized mean?">i</button></div><strong id="stocksRealized">—</strong><small>Since baseline</small></article>
         </section>
         <section class="panel holdings-panel">
-          <div class="toolbar"><label class="search"><span>⌕</span><input id="stockSearch" type="search" placeholder="Search stocks"></label><select id="stockSort"><option value="value">Value</option><option value="pnl">P&amp;L</option><option value="day">Today</option><option value="name">Name</option></select></div>
-          <div class="list-head stock-grid"><span>Holding</span><span>Qty</span><span>Basis / LTP</span><span>Value</span><span>Today</span><span>Tracked change</span></div>
+          <div class="toolbar"><label class="search"><span>⌕</span><input id="stockSearch" type="search" placeholder="Search stocks"></label><select id="stockSort" aria-label="Sort stocks"><option value="value">Value</option><option value="pnl">Tracked change</option><option value="day">Today</option><option value="basis">LTP</option><option value="qty">Qty</option><option value="name">Name</option></select></div>
+          <div class="list-head stock-grid">
+            <span><button class="sort-header" type="button" data-sort-table="stocks" data-sort-key="name" aria-label="Sort by holding">Holding <span class="sort-arrow" aria-hidden="true">↕</span></button></span>
+            <span><button class="sort-header" type="button" data-sort-table="stocks" data-sort-key="qty" aria-label="Sort by quantity">Qty <span class="sort-arrow" aria-hidden="true">↕</span></button></span>
+            <span><button class="sort-header" type="button" data-sort-table="stocks" data-sort-key="basis" aria-label="Sort by LTP">Basis / LTP <span class="sort-arrow" aria-hidden="true">↕</span></button></span>
+            <span><button class="sort-header" type="button" data-sort-table="stocks" data-sort-key="value" aria-label="Sort by value">Value <span class="sort-arrow" aria-hidden="true">↕</span></button></span>
+            <span><button class="sort-header" type="button" data-sort-table="stocks" data-sort-key="day" aria-label="Sort by today's change">Today <span class="sort-arrow" aria-hidden="true">↕</span></button></span>
+            <span><button class="sort-header" type="button" data-sort-table="stocks" data-sort-key="pnl" aria-label="Sort by tracked change">Tracked change <span class="sort-arrow" aria-hidden="true">↕</span></button></span>
+          </div>
           <div id="stockList" class="asset-list"></div>
         </section>
       </section>
@@ -144,8 +151,14 @@
           <article class="summary-stat"><div class="summary-label"><span>Realized</span><button class="info-button" type="button" data-info="fund-realized" aria-label="What does realized mean?">i</button></div><strong id="fundsRealized">—</strong><small>Since baseline</small></article>
         </section>
         <section class="panel holdings-panel">
-          <div class="toolbar"><label class="search"><span>⌕</span><input id="fundSearch" type="search" placeholder="Search mutual funds"></label><select id="fundSort"><option value="value">Value</option><option value="pnl">P&amp;L</option><option value="name">Name</option></select></div>
-          <div class="list-head fund-grid"><span>Fund</span><span>Units</span><span>Basis / NAV</span><span>Value</span><span>Tracked change</span></div>
+          <div class="toolbar"><label class="search"><span>⌕</span><input id="fundSearch" type="search" placeholder="Search mutual funds"></label><select id="fundSort" aria-label="Sort mutual funds"><option value="value">Value</option><option value="pnl">Tracked change</option><option value="basis">NAV</option><option value="qty">Units</option><option value="name">Name</option></select></div>
+          <div class="list-head fund-grid">
+            <span><button class="sort-header" type="button" data-sort-table="funds" data-sort-key="name" aria-label="Sort by fund">Fund <span class="sort-arrow" aria-hidden="true">↕</span></button></span>
+            <span><button class="sort-header" type="button" data-sort-table="funds" data-sort-key="qty" aria-label="Sort by units">Units <span class="sort-arrow" aria-hidden="true">↕</span></button></span>
+            <span><button class="sort-header" type="button" data-sort-table="funds" data-sort-key="basis" aria-label="Sort by NAV">Basis / NAV <span class="sort-arrow" aria-hidden="true">↕</span></button></span>
+            <span><button class="sort-header" type="button" data-sort-table="funds" data-sort-key="value" aria-label="Sort by value">Value <span class="sort-arrow" aria-hidden="true">↕</span></button></span>
+            <span><button class="sort-header" type="button" data-sort-table="funds" data-sort-key="pnl" aria-label="Sort by tracked change">Tracked change <span class="sort-arrow" aria-hidden="true">↕</span></button></span>
+          </div>
           <div id="fundList" class="asset-list"></div>
         </section>
       </section>
