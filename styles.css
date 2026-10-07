@@ -1632,3 +1632,40 @@ html[data-theme="light"] .daily-history-panel{
   .learning-dialog-actions{gap:6px}
   .learning-privacy-btn{min-height:32px;padding:6px 8px;font-size:9.5px}
 }
+
+
+/* Modern sort combobox */
+.modern-select-native{display:none}
+.modern-select{position:relative;min-width:154px;flex:0 0 auto}
+.modern-select-trigger{
+  width:100%;min-height:42px;padding:0 12px 0 14px;border:1px solid var(--border);border-radius:12px;
+  background:linear-gradient(180deg,var(--surface-2),var(--surface));color:var(--text);
+  display:flex;align-items:center;justify-content:space-between;gap:16px;cursor:pointer;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035);transition:border-color .15s ease,box-shadow .15s ease,background .15s ease
+}
+.modern-select-trigger:hover{border-color:#344255;background:var(--surface-2)}
+.modern-select.open .modern-select-trigger{
+  border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft),inset 0 1px 0 rgba(255,255,255,.04)
+}
+.modern-select-label{font-size:13px;font-weight:650;white-space:nowrap}
+.modern-select-chevron{
+  width:8px;height:8px;border-right:1.7px solid currentColor;border-bottom:1.7px solid currentColor;
+  transform:rotate(45deg) translateY(-2px);color:var(--muted);transition:transform .16s ease,color .16s ease
+}
+.modern-select.open .modern-select-chevron{transform:rotate(225deg) translate(-1px,-1px);color:var(--accent)}
+.modern-select-menu{
+  position:absolute;top:calc(100% + 8px);right:0;z-index:80;min-width:190px;padding:6px;border:1px solid var(--border);
+  border-radius:12px;background:var(--surface);box-shadow:0 18px 44px rgba(0,0,0,.34);display:grid;gap:2px
+}
+.modern-select-menu[hidden]{display:none}
+.modern-select-option{
+  width:100%;padding:10px 11px;border:0;border-radius:8px;background:transparent;color:var(--text);
+  display:flex;align-items:center;justify-content:space-between;gap:14px;text-align:left;cursor:pointer;font-size:13px
+}
+.modern-select-option:hover,.modern-select-option:focus-visible{background:var(--surface-2);outline:none}
+.modern-select-option.selected{background:var(--accent-soft);color:var(--text);font-weight:700}
+.modern-select-option.selected::after{content:"✓";color:var(--accent);font-size:12px;font-weight:800}
+.holdings-panel{overflow:visible}
+html[data-theme="light"] .modern-select-trigger{background:linear-gradient(180deg,#fff,#f7f9fc);border-color:#d8e0ea}
+html[data-theme="light"] .modern-select-trigger:hover{background:#f3f6fa;border-color:#c6d1de}
+html[data-theme="light"] .modern-select-menu{background:#fff;border-color:#d8e0ea;box-shadow:0 18px 40px rgba(40,57,78,.16)}
