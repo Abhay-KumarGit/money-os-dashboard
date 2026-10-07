@@ -587,7 +587,9 @@ function renderAllocation() {
 function moverCard(label, p) {
   if (!p) return '<div class="empty-inline">Daily comparison will appear when consecutive market prices are available.</div>';
   const i = p.instruments || {};
-  return '<article class="mover-card"><span class="muted">' + escapeHtml(label) + '</span><div class="mover-main"><div><strong>' + escapeHtml(i.symbol || i.name || "Holding") + '</strong><small>' + escapeHtml(i.name && i.symbol ? i.name : i.asset_type || "") + '</small></div><div class="' + tone(p.day_change_pct) + '"><strong>' + escapeHtml(pct(p.day_change_pct)) + '</strong><small>' + escapeHtml(signedMoney(p.day_change)) + "</small></div></div></article>";
+  return '<article class="mover-card"><span class="muted">' + escapeHtml(label) + '</span><div class="mover-main">' +
+    '<div class="mover-company">' + stockBrandHtml(i, "stock-brand-mover") + '<div><strong>' + escapeHtml(i.symbol || i.name || "Holding") + '</strong><small>' + escapeHtml(i.name && i.symbol ? i.name : i.asset_type || "") + '</small></div></div>' +
+    '<div class="' + tone(p.day_change_pct) + '"><strong>' + escapeHtml(pct(p.day_change_pct)) + '</strong><small>' + escapeHtml(signedMoney(p.day_change)) + "</small></div></div></article>";
 }
 
 function renderMovers() {
@@ -1048,7 +1050,11 @@ function transactionRow(t) {
   const title = i.name || (i.asset_type === "MF" && fundCode ? "Mutual fund" : rawSymbol) || "Instrument";
   const identifier = i.asset_type === "MF" && !i.name && fundCode ? " · Scheme " + fundCode : "";
   const label = t.side === "BUY" ? "Bought" : "Sold";
-  return '<div class="activity-row"><div class="activity-icon ' + (t.side === "BUY" ? "buy" : "sell") + '">' + (t.side === "BUY" ? "B" : "S") + '</div><div class="activity-main"><strong>' + escapeHtml(label + " " + title) + '</strong><small>' + escapeHtml(privateNumber(t.quantity)) + " units @ " + escapeHtml(money(t.price, true)) + ' · ' + escapeHtml(t.broker || t.source) + escapeHtml(identifier) + '</small></div><time>' + escapeHtml(dateLabel(t.trade_date)) + '</time></div>';
+  const isStock = ["EQUITY", "ETF"].includes(i.asset_type);
+  const leading = isStock
+    ? '<div class="activity-brand-wrap">' + stockBrandHtml(i, "stock-brand-activity") + '<span class="activity-side-badge ' + (t.side === "BUY" ? "buy" : "sell") + '">' + (t.side === "BUY" ? "B" : "S") + '</span></div>'
+    : '<div class="activity-icon ' + (t.side === "BUY" ? "buy" : "sell") + '">' + (t.side === "BUY" ? "B" : "S") + '</div>';
+  return '<div class="activity-row">' + leading + '<div class="activity-main"><strong>' + escapeHtml(label + " " + title) + '</strong><small>' + escapeHtml(privateNumber(t.quantity)) + " units @ " + escapeHtml(money(t.price, true)) + ' · ' + escapeHtml(t.broker || t.source) + escapeHtml(identifier) + '</small></div><time>' + escapeHtml(dateLabel(t.trade_date)) + '</time></div>';
 }
 
 function renderActivity() {
@@ -1402,7 +1408,11 @@ function recommendationRows(items, kind = "action") {
     const priorityClass = ["high", "urgent", "attention", "risk"].includes(item.priority)
       ? "attention"
       : ["medium", "watch", "monitor"].includes(item.priority) ? "watch" : "calm";
-    return '<div class="daily-list-item"><span class="daily-bullet ' + priorityClass + '" aria-hidden="true"></span><div class="daily-item-copy"><strong>' +
+    const relatedStock = matchPortfolioStock(item.title + " " + item.detail);
+    const leading = relatedStock
+      ? stockBrandHtml(relatedStock, "stock-brand-daily brand-priority-" + priorityClass)
+      : '<span class="daily-bullet ' + priorityClass + '" aria-hidden="true"></span>';
+    return '<div class="daily-list-item' + (relatedStock ? " has-brand" : "") + '">' + leading + '<div class="daily-item-copy"><strong>' +
       escapeHtml(dailyText(item.title)) + '</strong>' + (item.detail ? '<p>' + escapeHtml(dailyText(item.detail)) + '</p>' : '') +
       learningButtonHtml(item.learn) + '</div></div>';
   }).join("");
@@ -1808,6 +1818,12 @@ function bindEvents() {
     if (!button?.dataset.learn) return;
     try { openLearningDialog(JSON.parse(button.dataset.learn)); } catch (err) { console.error("Invalid learning module", err); }
   });
+  document.addEventListener("error", (event) => {
+    const img = event.target;
+    if (!(img instanceof HTMLImageElement) || !img.classList.contains("stock-brand-logo")) return;
+    img.hidden = true;
+    img.closest(".stock-brand")?.querySelector(".stock-brand-fallback")?.classList.remove("hidden");
+  }, true);
   $("stockSearch").addEventListener("input", renderStocks);
   $("stockSort").addEventListener("change", (e) => setHoldingSort("stocks", e.target.value, e.target.value === "name" ? "asc" : "desc"));
   $("fundSearch").addEventListener("input", renderFunds);
@@ -1837,12 +1853,16 @@ function bindEvents() {
 
     const item = event.target.closest("[data-stock-action]");
     if (item) {
-      const value = item.dataset.stockAction === "copy-symbol" ? item.dataset.stockSymbol : item.dataset.stockName;
-      try {
-        await navigator.clipboard.writeText(value || "");
-        showToast(item.dataset.stockAction === "copy-symbol" ? "Stock symbol copied" : "Stock name copied");
-      } catch {
-        showToast("Could not copy to clipboard");
+      const p = findPositionFromAction(item);
+      const action = item.dataset.stockAction;
+      if (action === "details") {
+        openPositionDetails(p);
+      } else if (action === "quote") {
+        const url = marketQuoteUrl(p?.instruments || {});
+        if (url) window.open(url, "_blank", "noopener,noreferrer");
+      } else if (action === "fundamentals") {
+        const url = fundamentalsUrl(p?.instruments || {});
+        if (url) window.open(url, "_blank", "noopener,noreferrer");
       }
       const menu = item.closest(".stock-action-menu");
       if (menu) menu.hidden = true;
