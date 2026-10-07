@@ -242,7 +242,7 @@ canvas{display:block;width:100%;height:250px}
 .asset-row{min-height:72px;border-bottom:1px solid var(--border-soft);font-size:13px}
 .asset-row:last-child{border-bottom:0}
 .stock-grid{grid-template-columns:minmax(190px,1.8fr) .55fr 1fr 1fr .85fr 1fr 42px}
-.fund-grid{grid-template-columns:minmax(260px,2.2fr) .7fr 1fr 1fr 1fr}
+.fund-grid{grid-template-columns:minmax(260px,2.2fr) .7fr 1fr 1fr 1fr 42px}
 .asset-row>div{display:grid;gap:3px;min-width:0}
 .asset-row small{color:var(--muted);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .holding-name strong{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -312,6 +312,7 @@ canvas{display:block;width:100%;height:250px}
   .sync-grid{grid-template-columns:1fr 1fr}
   .settings-grid{grid-template-columns:1fr}
   .stock-grid{grid-template-columns:minmax(170px,1.5fr) .5fr 1fr 1fr .85fr 1fr 40px}
+  .fund-grid{grid-template-columns:minmax(220px,1.8fr) .6fr 1fr 1fr 1fr 40px}
 }
 
 @media(max-width:680px){
