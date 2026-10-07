@@ -175,6 +175,20 @@
             <div class="settings-compact-head"><div class="privacy-title-row"><h3>Performance basis</h3><button class="info-button" type="button" data-info="performance-basis" aria-label="About performance basis">i</button></div></div>
             <div class="settings-compact-row"><div><strong>Baseline</strong><small>31 Aug 2026</small></div><span class="muted">Tracked</span></div>
           </article>
+          <article class="panel settings-card health-card">
+            <div class="settings-compact-head">
+              <div>
+                <h3>System health</h3>
+                <small>Live service status & data freshness</small>
+              </div>
+              <button id="healthCheckBtn" class="secondary compact-control" type="button">Check now</button>
+            </div>
+            <div id="healthSummary" class="health-summary">
+              <span class="health-dot unknown"></span>
+              <div><strong>Not checked yet</strong><small>Run a health check to verify Money OS services.</small></div>
+            </div>
+            <div id="healthList" class="health-list"></div>
+          </article>
           <article class="panel settings-card privacy-card">
             <div class="privacy-card-head">
               <div class="privacy-title-row">
