@@ -35,34 +35,38 @@
         <div><p class="eyebrow">PORTFOLIO</p><div class="brand-title">Money OS</div></div>
       </button>
       <div class="top-actions">
-        <div id="syncPill" class="sync-pill"><span class="dot"></span><span>Synced</span></div>
         <button id="themeToggle" class="secondary top-action theme-toggle" type="button" aria-label="Switch to light mode" title="Switch appearance">
           <svg class="top-action-icon theme-icon theme-icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
           <svg class="top-action-icon theme-icon theme-icon-moon hidden" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.2A8.3 8.3 0 0 1 8.8 4 8.5 8.5 0 1 0 20 15.2Z"/></svg>
-          <span id="themeToggleLabel" class="top-action-label">Light</span>
         </button>
         <button id="privacyToggle" class="secondary top-action privacy-toggle" type="button" aria-pressed="false" aria-label="Hide financial values" title="Hide financial values">
           <svg class="top-action-icon privacy-icon privacy-icon-show" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.4 12s3.4-6 9.6-6 9.6 6 9.6 6-3.4 6-9.6 6-9.6-6-9.6-6Z"/><circle cx="12" cy="12" r="2.8"/></svg>
           <svg class="top-action-icon privacy-icon privacy-icon-hide hidden" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18"/><path d="M10.6 6.2A11 11 0 0 1 12 6c6.2 0 9.6 6 9.6 6a16.8 16.8 0 0 1-3 3.6M6.2 6.3C3.7 8.1 2.4 12 2.4 12s3.4 6 9.6 6c1.5 0 2.8-.3 4-.8M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
           <span id="privacyToggleLabel" class="top-action-label">Hide values</span>
         </button>
-        <button id="lockBtn" class="secondary top-action" type="button" aria-label="Lock Money OS" title="Lock Money OS">
-          <svg class="top-action-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
-          <span class="top-action-label">Lock</span>
+        <button id="settingsBtn" class="secondary top-action" type="button" data-nav="settings" aria-label="Open settings" title="Settings">
+          <svg class="top-action-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3A1.7 1.7 0 0 0 10 3V2.8h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"/></svg>
+          <span class="top-action-label">Settings</span>
         </button>
       </div>
     </header>
 
-    <nav class="tabs">
-      <button class="active" data-nav="overview">Overview</button>
-      <button data-nav="stocks">Stocks</button>
-      <button data-nav="funds">Mutual Funds</button>
-      <button data-nav="activity">Activity</button>
-      <button data-nav="settings">Settings</button>
-      <button data-nav="daily">Daily</button>
-    </nav>
+    <div class="workspace">
+      <aside class="nav-rail" aria-label="Primary navigation">
+        <nav class="tabs">
+          <button data-nav="daily">Daily</button>
+          <button data-nav="stocks">Stocks</button>
+          <button data-nav="funds">Mutual Funds</button>
+          <button data-nav="activity">Activity</button>
+          <button class="active" data-nav="overview">Overview</button>
+        </nav>
+        <button id="navDockToggle" class="nav-dock-toggle" type="button" aria-label="Move navigation to the right" title="Move navigation to the right">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5 3 12l5 7"/><path d="M3 12h18"/></svg>
+          <span>Move right</span>
+        </button>
+      </aside>
 
-    <div class="content">
+      <div class="content">
       <section id="view-overview" class="view active">
         <section class="hero panel">
           <div class="hero-main">
@@ -149,8 +153,7 @@
           <div class="page-title-row"><h2>Activity</h2><button class="info-button" type="button" data-info="activity-status" aria-label="About activity status">i</button></div>
         </div>
 
-        <section class="summary-strip panel activity-summary" aria-label="Portfolio activity status">
-          <article class="summary-stat"><div class="summary-label"><span>Status</span></div><strong id="syncHealth">—</strong><small id="lastIngestion">—</small></article>
+        <section class="summary-strip panel activity-summary" aria-label="Portfolio activity review">
           <article class="summary-stat"><div class="summary-label"><span>Review</span></div><strong id="pendingCount">—</strong><small>Pending</small></article>
           <article class="summary-stat"><div class="summary-label"><span>Issues</span></div><strong id="failedCount">—</strong><small>Recent</small></article>
         </section>
@@ -163,49 +166,60 @@
 
       <section id="view-settings" class="view">
         <div class="page-head"><div><h2>Settings</h2></div></div>
-        <section class="settings-grid">
-          <article class="panel settings-card compact-settings-card">
-            <div class="settings-compact-head"><div class="privacy-title-row"><h3>Security</h3><button class="info-button" type="button" data-info="security-settings" aria-label="About security">i</button></div><span class="secure-badge">Protected</span></div>
-            <div class="settings-compact-row"><div><strong>Session</strong><small id="sessionExpiry">—</small></div><span id="rememberState" class="muted">—</span></div>
-            <div class="settings-compact-row"><div><strong>Money OS password</strong><small>Primary sign-in</small></div><button id="changePasswordBtn" class="secondary compact-control">Change</button></div>
-            <div class="settings-compact-row"><div><strong>Account access</strong><small>End this session</small></div><button id="logoutBtn" class="danger compact-danger">Sign out</button></div>
-            <p id="passwordChangeStatus" class="form-status hidden"></p>
-          </article>
-          <article class="panel settings-card compact-settings-card">
-            <div class="settings-compact-head"><div class="privacy-title-row"><h3>Performance basis</h3><button class="info-button" type="button" data-info="performance-basis" aria-label="About performance basis">i</button></div></div>
-            <div class="settings-compact-row"><div><strong>Baseline</strong><small>31 Aug 2026</small></div><span class="muted">Tracked</span></div>
-          </article>
-          <article class="panel settings-card health-card">
-            <div class="settings-compact-head">
-              <div>
-                <h3>System health</h3>
-                <small>Live service status & data freshness</small>
+        <section class="settings-stack">
+          <details class="panel settings-card settings-accordion" open>
+            <summary class="settings-accordion-head">
+              <div class="privacy-title-row"><h3>Security</h3><button class="info-button" type="button" data-info="security-settings" aria-label="About security">i</button></div>
+              <span class="secure-badge">Protected</span>
+            </summary>
+            <div class="settings-accordion-body">
+              <div class="settings-compact-row"><div><strong>Session</strong><small id="sessionExpiry">—</small></div><span id="rememberState" class="muted">—</span></div>
+              <div class="settings-compact-row"><div><strong>Money OS password</strong><small>Primary sign-in</small></div><button id="changePasswordBtn" class="secondary compact-control">Change</button></div>
+              <div class="settings-compact-row"><div><strong>Lock app</strong><small>Hide the portfolio and require sign-in again</small></div><button id="lockBtn" class="secondary compact-control" type="button">Lock</button></div>
+              <div class="settings-compact-row"><div><strong>Account access</strong><small>End this session</small></div><button id="logoutBtn" class="danger compact-danger">Sign out</button></div>
+              <p id="passwordChangeStatus" class="form-status hidden"></p>
+            </div>
+          </details>
+
+          <details class="panel settings-card settings-accordion">
+            <summary class="settings-accordion-head">
+              <div class="privacy-title-row"><h3>Performance basis</h3><button class="info-button" type="button" data-info="performance-basis" aria-label="About performance basis">i</button></div>
+            </summary>
+            <div class="settings-accordion-body">
+              <div class="settings-compact-row"><div><strong>Baseline</strong><small>31 Aug 2026</small></div><span class="muted">Tracked</span></div>
+            </div>
+          </details>
+
+          <details class="panel settings-card settings-accordion health-card">
+            <summary class="settings-accordion-head">
+              <div><h3>System health</h3><small>Live service status & data freshness</small></div>
+            </summary>
+            <div class="settings-accordion-body">
+              <div class="settings-card-action"><button id="healthCheckBtn" class="secondary compact-control" type="button">Check now</button></div>
+              <div id="healthSummary" class="health-summary">
+                <span class="health-dot unknown"></span>
+                <div><strong>Not checked yet</strong><small>Run a health check to verify Money OS services.</small></div>
               </div>
-              <button id="healthCheckBtn" class="secondary compact-control" type="button">Check now</button>
+              <div id="healthList" class="health-list"></div>
             </div>
-            <div id="healthSummary" class="health-summary">
-              <span class="health-dot unknown"></span>
-              <div><strong>Not checked yet</strong><small>Run a health check to verify Money OS services.</small></div>
-            </div>
-            <div id="healthList" class="health-list"></div>
-          </article>
-          <article class="panel settings-card privacy-card">
-            <div class="privacy-card-head">
-              <div class="privacy-title-row">
-                <h3>Screen privacy</h3>
-                <button class="info-button" type="button" data-info="screen-privacy" aria-label="About screen privacy">i</button>
+          </details>
+
+          <details class="panel settings-card settings-accordion privacy-card">
+            <summary class="settings-accordion-head">
+              <div class="privacy-title-row"><h3>Screen privacy</h3><button class="info-button" type="button" data-info="screen-privacy" aria-label="About screen privacy">i</button></div>
+              <span id="privacyStatus" class="privacy-status">Hidden</span>
+            </summary>
+            <div class="settings-accordion-body">
+              <div class="privacy-row">
+                <div><strong>Financial values</strong><small>Amounts, returns & charts</small></div>
+                <button id="privacySettingsBtn" class="secondary compact-control" type="button">Show</button>
               </div>
-              <span id="privacyStatus" class="privacy-status">Visible</span>
+              <div class="privacy-row">
+                <div><strong>Privacy PIN</strong><small>Separate from login</small></div>
+                <button id="privacyPinSettingsBtn" class="secondary compact-control" type="button">Set PIN</button>
+              </div>
             </div>
-            <div class="privacy-row">
-              <div><strong>Financial values</strong><small>Amounts, returns & charts</small></div>
-              <button id="privacySettingsBtn" class="secondary compact-control" type="button">Hide</button>
-            </div>
-            <div class="privacy-row">
-              <div><strong>Privacy PIN</strong><small>Separate from login</small></div>
-              <button id="privacyPinSettingsBtn" class="secondary compact-control" type="button">Set PIN</button>
-            </div>
-          </article>
+          </details>
         </section>
       </section>
 
@@ -250,19 +264,20 @@
 
           <section class="panel daily-history-panel">
             <div class="panel-head"><div><h2>Previous reports</h2></div></div>
+            <div id="dailyHistoryTabs" class="daily-history-tabs" role="tablist" aria-label="Previous daily reports"></div>
             <div id="dailyHistory" class="daily-history"></div>
           </section>
         </div>
       </section>
+      </div>
     </div>
 
     <nav class="mobile-nav" aria-label="Primary">
-      <button class="active" data-nav="overview"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-6h5v6"/></svg><small>Overview</small></button>
+      <button data-nav="daily"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.4 4.1L17.5 8.5l-4.1 1.4L12 14l-1.4-4.1-4.1-1.4 4.1-1.4L12 3Z"/><path d="m18 14 .8 2.2L21 17l-2.2.8L18 20l-.8-2.2L15 17l2.2-.8L18 14Z"/><path d="M4 15h5M4 19h8"/></svg><small>Daily</small></button>
       <button data-nav="stocks"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m4 17 5-5 3 3 7-8"/><path d="M15 7h4v4"/></svg><small>Stocks</small></button>
       <button data-nav="funds"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9h9"/><path d="M20.2 15A9 9 0 1 1 9 3.5"/></svg><small>Funds</small></button>
       <button data-nav="activity"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg><small>Activity</small></button>
-      <button data-nav="settings"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21h-4v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H3v-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V3h4v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1H21v4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg><small>Settings</small></button>
-      <button data-nav="daily"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.4 4.1L17.5 8.5l-4.1 1.4L12 14l-1.4-4.1-4.1-1.4 4.1-1.4L12 3Z"/><path d="m18 14 .8 2.2L21 17l-2.2.8L18 20l-.8-2.2L15 17l2.2-.8L18 14Z"/><path d="M4 15h5M4 19h8"/></svg><small>Daily</small></button>
+      <button class="active" data-nav="overview"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-6h5v6"/></svg><small>Overview</small></button>
     </nav>
   </div>
 
