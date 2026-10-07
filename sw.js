@@ -1,6 +1,6 @@
-const CACHE = "money-os-v36";
-const ASSETS = ["./","./index.html","./app.js?v=36","./styles.css?v=36","./manifest.webmanifest","./icon.svg"];
-const LOGO_HOSTS = new Set(["www.google.com"]);
+const CACHE = "money-os-v37";
+const ASSETS = ["./","./index.html","./app.js?v=37","./styles.css?v=37","./manifest.webmanifest","./icon.svg"];
+const LOGO_HOSTS = new Set(["icon.horse"]);
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS)));
@@ -19,7 +19,7 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(event.request.url);
   const isLocal = url.origin === self.location.origin;
-  const isBrandLogo = LOGO_HOSTS.has(url.hostname) && url.pathname === "/s2/favicons";
+  const isBrandLogo = LOGO_HOSTS.has(url.hostname) && url.pathname.startsWith("/icon/");
 
   if (!isLocal && !isBrandLogo) return;
 
