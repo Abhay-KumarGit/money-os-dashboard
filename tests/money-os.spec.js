@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+const { test, expect } = require("@playwright/test");
 
 const summary = {
   latest: {
@@ -139,7 +139,8 @@ test("locked shell stays private before authentication", async ({ page }) => {
   await expect(page.getByText(/Portfolio data is not embedded/i)).toBeVisible();
 });
 
-test("authenticated portfolio intelligence and interactions work", async ({ page }) => {
+test("authenticated portfolio intelligence and interactions work", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name.includes("mobile"), "desktop interaction coverage");
   await mockAuthenticatedApp(page);
   await page.goto("/");
   await expect(page.locator("#app")).toBeVisible();
