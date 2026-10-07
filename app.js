@@ -172,6 +172,12 @@ function updatePrivacyControls() {
     status.textContent = masked ? "Hidden" : "Visible";
     status.classList.toggle("active", masked);
   }
+  const learningPrivacy = $("learningDialogPrivacy");
+  if (learningPrivacy) {
+    learningPrivacy.textContent = masked ? "Show values" : "Hide values";
+    learningPrivacy.setAttribute("aria-label", masked ? "Show financial values in this lesson" : "Hide financial values in this lesson");
+    learningPrivacy.setAttribute("aria-pressed", String(!masked));
+  }
 }
 
 function setPrivacy(masked) {
@@ -179,6 +185,9 @@ function setPrivacy(masked) {
   localStorage.setItem(PRIVACY_KEY, state.masked ? "1" : "0");
   updatePrivacyControls();
   if (state.data) renderAll();
+  if ($("learningDialog")?.open && state.currentLearningLesson) {
+    renderLearningDialog(state.currentLearningLesson);
+  }
 }
 
 function privacyPasswordConfigured() {
@@ -1037,14 +1046,22 @@ function learningLessonHtml(raw) {
   return parts.join("") || '<p class="learning-empty">No lesson was saved for this item.</p>';
 }
 
+function renderLearningDialog(lesson) {
+  const normalized = normalizeLesson(lesson);
+  if (!normalized) return;
+  $("learningDialogTitle").textContent = dailyText(normalized.title || normalized.topic || "Learn this");
+  const formatLabel = normalized.format ? String(normalized.format).replace(/_/g, " ") : "";
+  const meta = [normalized.duration, formatLabel].filter(Boolean).join(" · ");
+  $("learningDialogMeta").textContent = meta || "Finance, made simple";
+  $("learningDialogBody").innerHTML = learningLessonHtml(normalized);
+  updatePrivacyControls();
+}
+
 function openLearningDialog(raw) {
   const lesson = normalizeLesson(raw);
   if (!lesson) return;
-  $("learningDialogTitle").textContent = lesson.title || lesson.topic || "Learn this";
-  const formatLabel = lesson.format ? String(lesson.format).replace(/_/g, " ") : "";
-  const meta = [lesson.duration, formatLabel].filter(Boolean).join(" · ");
-  $("learningDialogMeta").textContent = meta || "Finance, made simple";
-  $("learningDialogBody").innerHTML = learningLessonHtml(lesson);
+  state.currentLearningLesson = lesson;
+  renderLearningDialog(lesson);
   if (!$("learningDialog").open) $("learningDialog").showModal();
 }
 
@@ -1458,6 +1475,8 @@ function bindEvents() {
   document.querySelectorAll(".info-button").forEach((el) => el.addEventListener("click", () => openInfo(el.dataset.info)));
   $("closeInfoDialog").addEventListener("click", () => $("infoDialog").close());
   $("closeLearningDialog")?.addEventListener("click", () => $("learningDialog").close());
+  $("learningDialogPrivacy")?.addEventListener("click", togglePrivacy);
+  $("learningDialog")?.addEventListener("close", () => { state.currentLearningLesson = null; });
   document.addEventListener("click", (e) => {
     const button = e.target.closest(".learn-this-btn");
     if (!button?.dataset.learn) return;
