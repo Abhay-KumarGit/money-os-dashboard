@@ -1062,18 +1062,22 @@ function fundamentalsUrl(i) {
 function openPositionDetails(p) {
   if (!p) return;
   const i = p.instruments || {};
-  const symbol = normalizedStockSymbol(i) || i.name || "Position";
+  const isFund = i.asset_type === "MF";
+  const symbol = isFund ? (i.name || i.scheme_code || "Mutual fund") : (normalizedStockSymbol(i) || i.name || "Position");
   $("infoDialogTitle").textContent = symbol + " position";
+  const dateDetail = isFund
+    ? '<div><span>NAV date</span><strong>' + escapeHtml(dateLabel(p.price_date)) + '</strong></div>'
+    : '<div><span>Today</span><strong class="' + tone(p.day_change_pct) + '">' + escapeHtml(pct(p.day_change_pct)) + '</strong></div>';
   $("infoDialogBody").innerHTML =
-    '<div class="position-dialog-brand">' + stockBrandHtml(i, "stock-brand-dialog") +
-      '<div><strong>' + escapeHtml(i.name || symbol) + '</strong><small>' + escapeHtml([i.exchange, i.asset_type].filter(Boolean).join(" · ")) + '</small></div>' +
+    '<div class="position-dialog-brand">' + instrumentBrandHtml(i, "stock-brand-dialog", "high") +
+      '<div><strong>' + escapeHtml(i.name || symbol) + '</strong><small>' + escapeHtml(isFund ? (i.scheme_code ? "Scheme " + i.scheme_code + " · Mutual fund" : "Mutual fund") : [i.exchange, i.asset_type].filter(Boolean).join(" · ")) + '</small></div>' +
     '</div>' +
     '<div class="position-detail-grid">' +
-      '<div><span>Quantity</span><strong>' + escapeHtml(privateNumber(p.quantity)) + '</strong></div>' +
-      '<div><span>Average price</span><strong>' + escapeHtml(money(p.average_cost, true)) + '</strong></div>' +
-      '<div><span>LTP</span><strong>' + escapeHtml(money(p.close, true)) + '</strong></div>' +
+      '<div><span>' + (isFund ? "Units" : "Quantity") + '</span><strong>' + escapeHtml(privateNumber(p.quantity)) + '</strong></div>' +
+      '<div><span>' + (isFund ? "Average NAV" : "Average price") + '</span><strong>' + escapeHtml(money(p.average_cost, true)) + '</strong></div>' +
+      '<div><span>' + (isFund ? "NAV" : "LTP") + '</span><strong>' + escapeHtml(money(p.close, true)) + '</strong></div>' +
       '<div><span>Market value</span><strong>' + escapeHtml(money(p.market_value)) + '</strong></div>' +
-      '<div><span>Today</span><strong class="' + tone(p.day_change_pct) + '">' + escapeHtml(pct(p.day_change_pct)) + '</strong></div>' +
+      dateDetail +
       '<div><span>Tracked return</span><strong class="' + tone(p.unrealized_pnl) + '">' + escapeHtml(signedMoney(p.unrealized_pnl)) + '</strong></div>' +
     '</div>';
   if (!$("infoDialog").open) $("infoDialog").showModal();
@@ -1128,15 +1132,26 @@ function renderStocks() {
 
 function fundRow(p) {
   const i = p.instruments || {};
+  const name = i.name || i.scheme_code || "Mutual fund";
+  const schemeCode = String(i.scheme_code || "").trim();
+  const instrumentId = String(p.instrument_id ?? "");
   return '<div class="asset-row fund-grid">' +
     '<div class="holding-name holding-with-icon" data-label="Fund">' +
       instrumentBrandHtml(i, "stock-brand-row fund-brand-row", "high") +
-      '<span class="holding-copy"><strong>' + escapeHtml(i.name || i.scheme_code || "Mutual fund") + '</strong><small>' + escapeHtml(i.scheme_code ? "Scheme " + i.scheme_code : "Mutual fund") + '</small></span>' +
+      '<span class="holding-copy"><strong>' + escapeHtml(name) + '</strong><small>' + escapeHtml(schemeCode ? "Scheme " + schemeCode : "Mutual fund") + '</small></span>' +
     '</div>' +
     '<div data-label="Units">' + escapeHtml(privateNumber(p.quantity)) + '</div>' +
     '<div data-label="Basis / NAV"><strong>' + escapeHtml(money(p.close, true)) + '</strong><small>basis ' + escapeHtml(money(p.average_cost, true)) + '</small></div>' +
     '<div data-label="Value"><strong>' + escapeHtml(money(p.market_value)) + '</strong><small>NAV ' + escapeHtml(dateLabel(p.price_date)) + '</small></div>' +
     '<div data-label="Tracked change" class="' + tone(p.unrealized_pnl) + '"><strong>' + escapeHtml(signedMoney(p.unrealized_pnl)) + '</strong><small>' + escapeHtml(pct(p.return_pct)) + '</small></div>' +
+    '<div class="asset-actions" data-label="Actions">' +
+      '<button class="stock-action-btn" type="button" aria-label="Actions for ' + escapeHtml(name) + '" aria-haspopup="menu" aria-expanded="false">⋮</button>' +
+      '<div class="stock-action-menu" role="menu" hidden>' +
+        '<button type="button" role="menuitem" data-stock-action="details" data-instrument-id="' + escapeHtml(instrumentId) + '"><span>Position details</span><small>View</small></button>' +
+        (schemeCode ? '<button type="button" role="menuitem" data-stock-action="copy-scheme" data-copy-value="' + escapeHtml(schemeCode) + '"><span>Copy scheme code</span><small>Copy</small></button>' : '') +
+        '<button type="button" role="menuitem" data-stock-action="copy-fund-name" data-copy-value="' + escapeHtml(name) + '"><span>Copy fund name</span><small>Copy</small></button>' +
+      '</div>' +
+    '</div>' +
   '</div>';
 }
 
@@ -1981,6 +1996,14 @@ function bindEvents() {
       } else if (action === "fundamentals") {
         const url = fundamentalsUrl(p?.instruments || {});
         if (url) window.open(url, "_blank", "noopener,noreferrer");
+      } else if (action === "copy-scheme" || action === "copy-fund-name") {
+        const value = item.dataset.copyValue || "";
+        try {
+          await navigator.clipboard.writeText(value);
+          showToast(action === "copy-scheme" ? "Scheme code copied" : "Fund name copied");
+        } catch {
+          showToast("Could not copy to clipboard");
+        }
       }
       const menu = item.closest(".stock-action-menu");
       if (menu) menu.hidden = true;
