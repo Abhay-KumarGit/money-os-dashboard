@@ -989,7 +989,8 @@ function openLearningDialog(raw) {
   const lesson = normalizeLesson(raw);
   if (!lesson) return;
   $("learningDialogTitle").textContent = lesson.title || lesson.topic || "Learn this";
-  const meta = [lesson.duration, lesson.format].filter(Boolean).join(" · ");
+  const formatLabel = lesson.format ? String(lesson.format).replace(/_/g, " ") : "";
+  const meta = [lesson.duration, formatLabel].filter(Boolean).join(" · ");
   $("learningDialogMeta").textContent = meta || "Finance, made simple";
   $("learningDialogBody").innerHTML = learningLessonHtml(lesson);
   if (!$("learningDialog").open) $("learningDialog").showModal();
