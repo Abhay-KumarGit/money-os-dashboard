@@ -9,7 +9,7 @@
   <title>Money OS</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=21">
+  <link rel="stylesheet" href="styles.css?v=22">
 </head>
 <body>
   <div id="boot" class="boot"><div class="brand-mark">₹</div></div>
@@ -54,11 +54,11 @@
     <div class="workspace">
       <aside class="nav-rail" aria-label="Primary navigation">
         <nav class="tabs">
-          <button data-nav="daily">Daily</button>
+          <button class="active" data-nav="daily">Daily</button>
           <button data-nav="stocks">Stocks</button>
           <button data-nav="funds">Mutual Funds</button>
           <button data-nav="activity">Activity</button>
-          <button class="active" data-nav="overview">Overview</button>
+          <button data-nav="overview">Overview</button>
         </nav>
         <button id="navDockToggle" class="nav-dock-toggle" type="button" aria-label="Move navigation to the right" title="Move navigation to the right">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5 3 12l5 7"/><path d="M3 12h18"/></svg>
@@ -66,7 +66,7 @@
       </aside>
 
       <div class="content">
-      <section id="view-overview" class="view active">
+      <section id="view-overview" class="view">
         <section class="hero panel">
           <div class="hero-main">
             <p class="kicker">TOTAL PORTFOLIO</p>
@@ -222,7 +222,7 @@
         </section>
       </section>
 
-      <section id="view-daily" class="view">
+      <section id="view-daily" class="view active">
         <div class="page-head daily-page-head">
           <div><h2>Daily</h2></div>
           <div class="daily-head-actions">
@@ -240,7 +240,7 @@
         </section>
 
         <div id="dailyContent" class="hidden">
-          <section class="panel daily-featured">
+          <section class="daily-featured">
             <div class="daily-featured-head">
               <div><h3 id="dailyTitle">Daily Report</h3></div>
               <span id="dailyTradingStatus" class="daily-status">—</span>
@@ -250,18 +250,18 @@
           </section>
 
           <section class="daily-grid">
-            <article class="panel daily-card">
+            <article class="daily-card">
               <div class="daily-card-head"><span class="daily-card-icon">✓</span><div><h3>Next actions</h3></div></div>
               <div id="dailyActions" class="daily-list"></div>
             </article>
-            <article class="panel daily-card daily-context-card">
+            <article class="daily-card daily-context-card">
               <div class="daily-card-head"><span class="daily-card-icon">↗</span><div><h3>Context & risk</h3></div></div>
               <div class="daily-section-block"><div class="daily-section-label">Market & portfolio context</div><div id="dailyHighlights" class="daily-list"></div></div>
               <div class="daily-section-block risk-block"><div class="daily-section-label">Risk radar</div><div id="dailyRisks" class="daily-list"></div></div>
             </article>
           </section>
 
-          <section class="panel daily-history-panel">
+          <section class="daily-history-panel">
             <div class="panel-head"><div><h2>Previous reports</h2></div></div>
             <div id="dailyHistoryTabs" class="daily-history-tabs" role="tablist" aria-label="Previous daily reports"></div>
             <div id="dailyHistory" class="daily-history"></div>
@@ -272,11 +272,11 @@
     </div>
 
     <nav class="mobile-nav" aria-label="Primary" style="grid-template-columns:repeat(5,minmax(0,1fr))">
-      <button data-nav="daily"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.4 4.1L17.5 8.5l-4.1 1.4L12 14l-1.4-4.1-4.1-1.4 4.1-1.4L12 3Z"/><path d="m18 14 .8 2.2L21 17l-2.2.8L18 20l-.8-2.2L15 17l2.2-.8L18 14Z"/><path d="M4 15h5M4 19h8"/></svg><small>Daily</small></button>
+      <button class="active" data-nav="daily"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.4 4.1L17.5 8.5l-4.1 1.4L12 14l-1.4-4.1-4.1-1.4 4.1-1.4L12 3Z"/><path d="m18 14 .8 2.2L21 17l-2.2.8L18 20l-.8-2.2L15 17l2.2-.8L18 14Z"/><path d="M4 15h5M4 19h8"/></svg><small>Daily</small></button>
       <button data-nav="stocks"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m4 17 5-5 3 3 7-8"/><path d="M15 7h4v4"/></svg><small>Stocks</small></button>
       <button data-nav="funds"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v9h9"/><path d="M20.2 15A9 9 0 1 1 9 3.5"/></svg><small>Funds</small></button>
       <button data-nav="activity"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg><small>Activity</small></button>
-      <button class="active" data-nav="overview"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-6h5v6"/></svg><small>Overview</small></button>
+      <button data-nav="overview"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10.5V20h13v-9.5"/><path d="M9.5 20v-6h5v6"/></svg><small>Overview</small></button>
     </nav>
   </div>
 
@@ -324,6 +324,6 @@
   </dialog>
 
   <div id="toast" class="toast hidden"></div>
-  <script src="app.js?v=21" defer></script>
+  <script src="app.js?v=22" defer></script>
 </body>
 </html>
