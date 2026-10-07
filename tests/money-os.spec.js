@@ -153,7 +153,7 @@ test("authenticated portfolio intelligence and interactions work", async ({ page
   await page.locator('.tabs [data-nav="stocks"]').click();
   await expect(page.locator("#stockList .asset-row")).toHaveCount(1);
   await page.locator('.sort-header[data-sort-table="stocks"][data-sort-key="name"]').click();
-  await expect(page.locator('.sort-header[data-sort-table="stocks"][data-sort-key="name"]')).toHaveAttribute("aria-sort", /ascending|descending/);
+  await expect(page.locator('.sort-header[data-sort-table="stocks"][data-sort-key="name"]')).toHaveAttribute("aria-pressed", "true");
 
   await page.locator(".stock-action-btn").first().click();
   await expect(page.locator(".stock-action-menu").first()).toBeVisible();
@@ -164,9 +164,9 @@ test("authenticated portfolio intelligence and interactions work", async ({ page
   await page.locator("#nextContribution").fill("20000");
   await expect(page.locator("#rebalanceSuggestion")).toContainText("Contribution-first suggestion");
 
+  await page.locator("#netWorthForm").evaluate(form => form.closest("details").open = true);
   await page.locator("#netWorthName").fill("EPF");
   await page.locator("#netWorthAmount").fill("250000");
-  await page.locator("#netWorthForm").evaluate(form => form.closest("details").open = true);
   await page.locator("#netWorthForm").dispatchEvent("submit");
   await expect(page.locator("#netWorthList")).toContainText("EPF");
 });
