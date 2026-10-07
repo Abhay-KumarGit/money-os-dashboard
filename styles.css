@@ -1271,3 +1271,32 @@ html[data-theme="light"] .daily-history-panel{
 
   .nav-dock-toggle::before{width:176px}
 }
+
+
+/* Portfolio nav heading: compact label with dock control */
+@media (min-width: 901px){
+  .nav-rail-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    min-height:46px;
+    padding:0 4px 10px 16px;
+  }
+  .nav-rail-title{
+    color:var(--muted);
+    font-size:10px;
+    font-weight:800;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+  }
+  .nav-rail-head .nav-dock-toggle{
+    margin:0;
+    width:36px;
+    height:36px;
+    min-height:36px;
+    border-radius:10px;
+    flex:0 0 auto;
+  }
+  .nav-rail-head .nav-dock-toggle::before{display:none}
+}
