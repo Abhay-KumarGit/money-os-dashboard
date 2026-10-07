@@ -5,6 +5,7 @@ const LEGACY_KEY = "moneyos.apiToken";
 const REMEMBER_KEY = "moneyos.remember";
 const PRIVACY_KEY = "moneyos.privacyMask";
 const THEME_KEY = "moneyos.theme";
+const NAV_DOCK_KEY = "moneyos.navDock";
 const REFRESH_STATUS_URL = "https://epyixyfcwdpkauenljle.supabase.co/functions/v1/daily-refresh-status";
 const HEALTH_URL = "https://epyixyfcwdpkauenljle.supabase.co/functions/v1/health";
 const MASK_TEXT = "••••••";
@@ -17,7 +18,9 @@ const number4 = new Intl.NumberFormat("en-IN", { maximumFractionDigits: 4 });
 let state = {
   data: null,
   view: "overview",
-  masked: localStorage.getItem(PRIVACY_KEY) === "1",
+  masked: true,
+  navDock: localStorage.getItem(NAV_DOCK_KEY) === "right" ? "right" : "left",
+  dailyHistoryIndex: 0,
   pendingPrivacyHide: false,
   pendingPrivacyReveal: false,
   dailyRefreshStatus: null,
@@ -441,6 +444,24 @@ async function unlock() {
   }
 }
 
+function applyNavDock() {
+  const app = $("app");
+  const button = $("navDockToggle");
+  if (!app || !button) return;
+  const right = state.navDock === "right";
+  app.classList.toggle("nav-right", right);
+  button.setAttribute("aria-label", right ? "Move navigation to the left" : "Move navigation to the right");
+  button.title = right ? "Move navigation to the left" : "Move navigation to the right";
+  const label = button.querySelector("span");
+  if (label) label.textContent = right ? "Move left" : "Move right";
+}
+
+function toggleNavDock() {
+  state.navDock = state.navDock === "right" ? "left" : "right";
+  localStorage.setItem(NAV_DOCK_KEY, state.navDock);
+  applyNavDock();
+}
+
 function navigate(view) {
   state.view = view;
   document.querySelectorAll(".view").forEach((el) => el.classList.toggle("active", el.id === "view-" + view));
@@ -512,10 +533,7 @@ function renderAll() {
   renderRecommendations();
   drawChart();
 
-  const sync = d.sync || {};
-  const healthy = sync.health === "healthy";
-  $("syncPill").classList.toggle("attention", !healthy);
-  $("syncPill").querySelector("span:last-child").textContent = healthy ? "Synced" : "Attention";
+
 }
 
 function renderAllocation() {
@@ -652,9 +670,6 @@ function transactionRow(t) {
 function renderActivity() {
   const d = state.data;
   const sync = d.sync || {};
-  $("syncHealth").textContent = sync.health === "healthy" ? "Healthy" : "Review";
-  $("syncHealth").className = sync.health === "healthy" ? "positive" : "warning";
-  $("lastIngestion").textContent = sync.last_ingestion_at ? dateTimeLabel(sync.last_ingestion_at) : "No recent update";
   $("pendingCount").textContent = sync.recent_pending ?? "—";
   $("failedCount").textContent = sync.recent_failed ?? "—";
 
@@ -1025,6 +1040,41 @@ async function refreshDailyReport() {
   }
 }
 
+function renderDailyHistory(previous) {
+  const tabs = $("dailyHistoryTabs");
+  const panel = $("dailyHistory");
+  if (!tabs || !panel) return;
+
+  if (!previous.length) {
+    tabs.innerHTML = "";
+    panel.innerHTML = '<div class="daily-list-empty history-empty">Earlier reports will appear here automatically.</div>';
+    return;
+  }
+
+  state.dailyHistoryIndex = Math.min(state.dailyHistoryIndex, previous.length - 1);
+  tabs.innerHTML = previous.map((r, index) =>
+    '<button type="button" role="tab" class="daily-history-tab ' + (index === state.dailyHistoryIndex ? 'active' : '') +
+    '" aria-selected="' + (index === state.dailyHistoryIndex ? 'true' : 'false') + '" data-history-index="' + index + '">' +
+    escapeHtml(reportDateLabel(r.recommendation_date)) + '</button>'
+  ).join("");
+
+  const r = previous[state.dailyHistoryIndex];
+  const actions = Array.isArray(r.actions) ? r.actions : [];
+  const risksForDay = Array.isArray(r.risks) ? r.risks.map((x) => {
+    if (typeof x === "string") return { title: x, priority: "risk" };
+    return { ...(x || {}), priority: x?.priority || "risk" };
+  }) : [];
+  const statusLabel = r.trading_day ? "Trading day" : "Market closed";
+  panel.innerHTML = '<div class="daily-history-report" role="tabpanel"><div class="daily-history-report-head"><div><strong>' +
+    escapeHtml(dateLabel(r.recommendation_date)) + '</strong><span>' + escapeHtml("Daily Report - " + reportDateLabel(r.recommendation_date)) +
+    '</span></div><small>' + escapeHtml(statusLabel + " · " + actions.length + (actions.length === 1 ? " action" : " actions")) +
+    '</small></div><p>' + escapeHtml(dailyText(r.summary || "No summary saved.")) +
+    '</p><div class="history-section"><span>Context</span><div class="daily-list">' + recommendationRows(r.highlights, "context") +
+    '</div></div><div class="history-section"><span>Risks</span><div class="daily-list">' + recommendationRows(risksForDay, "risk") +
+    '</div></div><div class="history-section"><span>Actions</span><div class="daily-list">' + recommendationRows(actions, "action") +
+    '</div></div></div>';
+}
+
 function renderRecommendations() {
   const empty = $("dailyEmpty");
   const content = $("dailyContent");
@@ -1059,22 +1109,7 @@ function renderRecommendations() {
   $("dailyRisks").innerHTML = recommendationRows(risks, "risk");
 
   const previous = rows.slice(1);
-  $("dailyHistory").innerHTML = previous.length ? previous.map((r) => {
-    const actions = Array.isArray(r.actions) ? r.actions : [];
-    const risksForDay = Array.isArray(r.risks) ? r.risks.map((x) => {
-      if (typeof x === "string") return { title: x, priority: "risk" };
-      return { ...(x || {}), priority: x?.priority || "risk" };
-    }) : [];
-    const statusLabel = r.trading_day ? "Trading day" : "Market closed";
-    return '<details class="daily-history-item"><summary><div><strong>' + escapeHtml(dateLabel(r.recommendation_date)) +
-      '</strong><span>' + escapeHtml("Daily Report - " + reportDateLabel(r.recommendation_date)) + '</span></div><small>' +
-      escapeHtml(statusLabel + " · " + actions.length + (actions.length === 1 ? " action" : " actions")) +
-      '</small></summary><div class="daily-history-body"><p>' + escapeHtml(dailyText(r.summary || "No summary saved.")) +
-      '</p><div class="history-section"><span>Context</span><div class="daily-list">' + recommendationRows(r.highlights, "context") +
-      '</div></div><div class="history-section"><span>Risks</span><div class="daily-list">' + recommendationRows(risksForDay, "risk") +
-      '</div></div><div class="history-section"><span>Actions</span><div class="daily-list">' + recommendationRows(actions, "action") +
-      '</div></div></div></details>';
-  }).join("") : '<div class="daily-list-empty history-empty">Earlier reports will appear here automatically.</div>';
+  renderDailyHistory(previous);
 }
 
 function drawChart() {
@@ -1215,6 +1250,22 @@ function bindEvents() {
   $("dailyRefreshBtn")?.addEventListener("click", refreshDailyReport);
   $("healthCheckBtn")?.addEventListener("click", checkHealth);
   $("privacySettingsBtn").addEventListener("click", togglePrivacy);
+  $("navDockToggle")?.addEventListener("click", toggleNavDock);
+  $("dailyHistoryTabs")?.addEventListener("click", (e) => {
+    const button = e.target.closest("[data-history-index]");
+    if (!button) return;
+    state.dailyHistoryIndex = Number(button.dataset.historyIndex) || 0;
+    const rows = Array.isArray(state.data?.recommendations) ? state.data.recommendations.slice(1) : [];
+    renderDailyHistory(rows);
+  });
+  document.querySelectorAll(".settings-accordion").forEach((item) => {
+    item.addEventListener("toggle", () => {
+      if (!item.open) return;
+      document.querySelectorAll(".settings-accordion").forEach((other) => {
+        if (other !== item) other.open = false;
+      });
+    });
+  });
   $("privacyUnlockForm").addEventListener("submit", (e) => { e.preventDefault(); unlockPrivacy(); });
   $("closePrivacyUnlockDialog").addEventListener("click", () => $("privacyUnlockDialog").close());
   $("cancelPrivacyUnlock").addEventListener("click", () => $("privacyUnlockDialog").close());
@@ -1256,7 +1307,10 @@ function bindEvents() {
 
 async function init() {
   applyTheme(preferredTheme(), false);
+  localStorage.setItem(PRIVACY_KEY, "1");
+  state.masked = true;
   bindEvents();
+  applyNavDock();
   updatePrivacyControls();
   $("rememberDevice").checked = localStorage.getItem(REMEMBER_KEY) !== "0";
 
