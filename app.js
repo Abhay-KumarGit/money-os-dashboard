@@ -977,7 +977,7 @@ function instrumentBrandScale(i) {
 function instrumentBrandLogoUrl(i) {
   const domain = instrumentBrandDomain(i);
   if (!domain) return "";
-  return "https://www.google.com/s2/favicons?sz=256&domain_url=" + encodeURIComponent("https://" + domain);
+  return "https://icon.horse/icon/" + encodeURIComponent(domain);
 }
 
 function instrumentBrandHtml(i, extraClass = "", priority = "auto") {
@@ -986,8 +986,8 @@ function instrumentBrandHtml(i, extraClass = "", priority = "auto") {
   const title = normalizedStockSymbol(i) || String(i?.name || "Investment");
   const scale = instrumentBrandScale(i);
   return '<span class="stock-brand ' + escapeHtml(extraClass) + '" title="' + escapeHtml(title) + '" style="--brand-scale:' + escapeHtml(scale) + '">' +
+    '<span class="stock-brand-fallback" aria-hidden="true">' + escapeHtml(initials) + '</span>' +
     (src ? '<img class="stock-brand-logo" src="' + escapeHtml(src) + '" alt="" width="40" height="40" loading="eager" decoding="async" referrerpolicy="no-referrer" fetchpriority="' + escapeHtml(priority) + '">' : '') +
-    '<span class="stock-brand-fallback' + (src ? ' hidden' : '') + '" aria-hidden="true">' + escapeHtml(initials) + '</span>' +
   '</span>';
 }
 
@@ -1033,7 +1033,7 @@ function warmBrandImages(data) {
 
   return Promise.race([
     Promise.allSettled(loaders),
-    new Promise((resolve) => setTimeout(resolve, 280))
+    new Promise((resolve) => setTimeout(resolve, 900))
   ]);
 }
 
@@ -1931,11 +1931,16 @@ function bindEvents() {
     if (!button?.dataset.learn) return;
     try { openLearningDialog(JSON.parse(button.dataset.learn)); } catch (err) { console.error("Invalid learning module", err); }
   });
+  document.addEventListener("load", (event) => {
+    const img = event.target;
+    if (!(img instanceof HTMLImageElement) || !img.classList.contains("stock-brand-logo")) return;
+    img.closest(".stock-brand")?.classList.add("brand-loaded");
+  }, true);
   document.addEventListener("error", (event) => {
     const img = event.target;
     if (!(img instanceof HTMLImageElement) || !img.classList.contains("stock-brand-logo")) return;
     img.hidden = true;
-    img.closest(".stock-brand")?.querySelector(".stock-brand-fallback")?.classList.remove("hidden");
+    img.closest(".stock-brand")?.classList.remove("brand-loaded");
   }, true);
   $("stockSearch").addEventListener("input", renderStocks);
   $("stockSort").addEventListener("change", (e) => setHoldingSort("stocks", e.target.value, e.target.value === "name" ? "asc" : "desc"));
