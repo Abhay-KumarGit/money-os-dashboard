@@ -665,8 +665,148 @@ function setHoldingSort(table, key, direction) {
 
   state[keyProp] = key;
   state[directionProp] = direction;
-  if (select && Array.from(select.options).some((option) => option.value === key)) select.value = key;
+  if (select && Array.from(select.options).some((option) => option.value === key)) {
+    select.value = key;
+    syncModernSelect(select);
+  }
   (isStocks ? renderStocks : renderFunds)();
+}
+
+function syncModernSelect(select) {
+  const root = select?._modernSelectRoot;
+  if (!root) return;
+  const selected = select.options[select.selectedIndex];
+  const label = root.querySelector(".modern-select-label");
+  if (label) label.textContent = selected?.textContent || "Select";
+
+  root.querySelectorAll(".modern-select-option").forEach((option) => {
+    const active = option.dataset.value === select.value;
+    option.classList.toggle("selected", active);
+    option.setAttribute("aria-selected", active ? "true" : "false");
+  });
+}
+
+function closeModernSelect(root, returnFocus = false) {
+  if (!root?.classList.contains("open")) return;
+  root.classList.remove("open");
+  const trigger = root.querySelector(".modern-select-trigger");
+  const menu = root.querySelector(".modern-select-menu");
+  trigger?.setAttribute("aria-expanded", "false");
+  if (menu) menu.hidden = true;
+  if (returnFocus) trigger?.focus();
+}
+
+function enhanceModernSelect(select) {
+  if (!select || select.dataset.modernized === "true") return;
+  select.dataset.modernized = "true";
+  select.classList.add("modern-select-native");
+
+  const root = document.createElement("div");
+  root.className = "modern-select";
+  root.dataset.for = select.id;
+
+  const trigger = document.createElement("button");
+  trigger.type = "button";
+  trigger.className = "modern-select-trigger";
+  trigger.setAttribute("aria-haspopup", "listbox");
+  trigger.setAttribute("aria-expanded", "false");
+  trigger.setAttribute("aria-label", select.getAttribute("aria-label") || "Choose sort");
+
+  const label = document.createElement("span");
+  label.className = "modern-select-label";
+  const chevron = document.createElement("span");
+  chevron.className = "modern-select-chevron";
+  chevron.setAttribute("aria-hidden", "true");
+
+  trigger.append(label, chevron);
+
+  const menu = document.createElement("div");
+  menu.className = "modern-select-menu";
+  menu.setAttribute("role", "listbox");
+  menu.hidden = true;
+
+  Array.from(select.options).forEach((nativeOption) => {
+    const option = document.createElement("button");
+    option.type = "button";
+    option.className = "modern-select-option";
+    option.dataset.value = nativeOption.value;
+    option.setAttribute("role", "option");
+    option.textContent = nativeOption.textContent;
+    menu.appendChild(option);
+  });
+
+  root.append(trigger, menu);
+  select.insertAdjacentElement("afterend", root);
+  select._modernSelectRoot = root;
+  syncModernSelect(select);
+
+  const openMenu = (focusEdge) => {
+    document.querySelectorAll(".modern-select.open").forEach((other) => {
+      if (other !== root) closeModernSelect(other);
+    });
+    root.classList.add("open");
+    menu.hidden = false;
+    trigger.setAttribute("aria-expanded", "true");
+    if (focusEdge) {
+      const options = Array.from(menu.querySelectorAll(".modern-select-option"));
+      (focusEdge === "last" ? options[options.length - 1] : options[0])?.focus();
+    }
+  };
+
+  trigger.addEventListener("click", () => {
+    if (root.classList.contains("open")) closeModernSelect(root);
+    else openMenu();
+  });
+
+  trigger.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault();
+      openMenu(event.key === "ArrowUp" ? "last" : "first");
+    }
+  });
+
+  menu.addEventListener("click", (event) => {
+    const option = event.target.closest(".modern-select-option");
+    if (!option) return;
+    select.value = option.dataset.value;
+    syncModernSelect(select);
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+    closeModernSelect(root, true);
+  });
+
+  menu.addEventListener("keydown", (event) => {
+    const options = Array.from(menu.querySelectorAll(".modern-select-option"));
+    const current = options.indexOf(document.activeElement);
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeModernSelect(root, true);
+      return;
+    }
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+    event.preventDefault();
+    const step = event.key === "ArrowDown" ? 1 : -1;
+    const next = (current + step + options.length) % options.length;
+    options[next]?.focus();
+  });
+
+  select.addEventListener("change", () => syncModernSelect(select));
+}
+
+function enhanceToolbarSelects() {
+  document.querySelectorAll(".toolbar select").forEach(enhanceModernSelect);
+  if (document.documentElement.dataset.modernSelectBound === "true") return;
+  document.documentElement.dataset.modernSelectBound = "true";
+
+  document.addEventListener("click", (event) => {
+    document.querySelectorAll(".modern-select.open").forEach((root) => {
+      if (!root.contains(event.target)) closeModernSelect(root);
+    });
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    document.querySelectorAll(".modern-select.open").forEach((root) => closeModernSelect(root, true));
+  });
 }
 
 function stockRow(p) {
@@ -1489,6 +1629,7 @@ function bindEvents() {
   document.querySelectorAll(".sort-header").forEach((button) => {
     button.addEventListener("click", () => setHoldingSort(button.dataset.sortTable, button.dataset.sortKey));
   });
+  enhanceToolbarSelects();
   $("changePasswordBtn").addEventListener("click", () => {
     $("dialogPasswordStatus").classList.add("hidden");
     $("newPassword").value = "";
