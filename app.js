@@ -688,7 +688,7 @@ function syncModernSelect(select) {
   const direction = state[isStocks ? "stockSortDirection" : "fundSortDirection"];
   const directionButton = root.querySelector(".modern-select-direction");
   if (directionButton) {
-    directionButton.textContent = direction === "asc" ? "↑" : "↓";
+    directionButton.innerHTML = sortArrowMarkup(true, direction);
     directionButton.setAttribute("aria-label", direction === "asc" ? "Sort ascending. Tap to sort descending." : "Sort descending. Tap to sort ascending.");
     directionButton.title = direction === "asc" ? "Ascending" : "Descending";
   }
