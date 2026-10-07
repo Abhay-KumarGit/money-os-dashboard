@@ -9,7 +9,7 @@
   <title>Money OS</title>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=23">
+  <link rel="stylesheet" href="styles.css?v=24">
 </head>
 <body>
   <div id="boot" class="boot"><div class="brand-mark">₹</div></div>
@@ -32,7 +32,7 @@
     <header class="topbar">
       <button class="brand brand-button" data-nav="overview">
         <div class="brand-mark">₹</div>
-        <div><p class="eyebrow">PORTFOLIO</p><div class="brand-title">Money OS</div></div>
+        <div><div class="brand-title">Money OS</div></div>
       </button>
       <div class="top-actions">
         <button id="themeToggle" class="secondary top-action theme-toggle" type="button" aria-label="Switch to light mode" title="Switch appearance">
@@ -53,6 +53,12 @@
 
     <div class="workspace">
       <aside class="nav-rail" aria-label="Primary navigation">
+        <div class="nav-rail-head">
+          <span class="nav-rail-title">Portfolio</span>
+          <button id="navDockToggle" class="nav-dock-toggle" type="button" aria-label="Move navigation to the right" title="Move navigation to the right">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5 3 12l5 7"/><path d="M3 12h18"/></svg>
+          </button>
+        </div>
         <nav class="tabs">
           <button class="active" data-nav="daily">Daily</button>
           <button data-nav="stocks">Stocks</button>
@@ -60,9 +66,6 @@
           <button data-nav="activity">Activity</button>
           <button data-nav="overview">Overview</button>
         </nav>
-        <button id="navDockToggle" class="nav-dock-toggle" type="button" aria-label="Move navigation to the right" title="Move navigation to the right">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5 3 12l5 7"/><path d="M3 12h18"/></svg>
-        </button>
       </aside>
 
       <div class="content">
