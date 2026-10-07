@@ -23,6 +23,8 @@ let state = {
   dailyRefreshBusy: false
 };
 
+let dailyRefreshPollTimer = null;
+
 function num(v) {
   const n = Number(v ?? 0);
   return Number.isFinite(n) ? n : 0;
@@ -822,24 +824,54 @@ function renderDailyRefreshStatus() {
   const btn = $("dailyRefreshBtn");
   const label = $("dailyRefreshLabel");
   if (!btn || !label) return;
+
   const s = state.dailyRefreshStatus;
   if (state.dailyRefreshBusy) {
     btn.disabled = true;
     btn.classList.add("loading");
-    label.textContent = "Refreshing…";
+    btn.classList.remove("complete");
+    label.textContent = "Requesting…";
     return;
   }
+
   btn.classList.remove("loading");
   if (!s) {
     btn.disabled = true;
+    btn.classList.remove("complete");
     label.textContent = "Checking…";
     return;
   }
-  btn.disabled = !s.refresh_needed;
-  btn.classList.toggle("complete", Boolean(s.report_available_today));
-  if (s.report_available_today) label.textContent = "Up to date";
-  else if (s.refresh_needed) label.textContent = "Refresh today";
-  else label.textContent = "Not due today";
+
+  btn.classList.toggle("complete", Boolean(s.refresh_completed));
+
+  if (s.refresh_completed) {
+    btn.disabled = true;
+    label.textContent = s.report_available_today ? "Up to date" : "Data refreshed";
+  } else if (s.refresh_requested) {
+    btn.disabled = true;
+    label.textContent = "Queued";
+  } else if (s.refresh_needed) {
+    btn.disabled = false;
+    label.textContent = s.report_available_today ? "Refresh data" : "Refresh today";
+  } else {
+    btn.disabled = true;
+    label.textContent = "Not due today";
+  }
+}
+
+function scheduleDailyRefreshPoll(status) {
+  if (dailyRefreshPollTimer) {
+    clearTimeout(dailyRefreshPollTimer);
+    dailyRefreshPollTimer = null;
+  }
+  if (state.view !== "daily" || !status?.refresh_requested || status?.refresh_completed) return;
+
+  dailyRefreshPollTimer = setTimeout(async () => {
+    await checkDailyRefreshStatus();
+    if (state.dailyRefreshStatus?.refresh_completed || state.dailyRefreshStatus?.report_available_today) {
+      await loadSummary();
+    }
+  }, 15000);
 }
 
 async function checkDailyRefreshStatus() {
@@ -852,18 +884,23 @@ async function checkDailyRefreshStatus() {
     });
     if (response.status === 401) return null;
     if (!response.ok) throw new Error("Refresh status API error " + response.status);
+
     state.dailyRefreshStatus = await response.json();
     renderDailyRefreshStatus();
+    scheduleDailyRefreshPoll(state.dailyRefreshStatus);
     return state.dailyRefreshStatus;
   } catch (e) {
     console.error("Daily refresh status failed", e);
     state.dailyRefreshStatus = {
       date: indiaDateKey(),
       report_available_today: false,
+      refresh_requested: false,
+      refresh_completed: false,
       refresh_needed: false,
       error: true
     };
     renderDailyRefreshStatus();
+    scheduleDailyRefreshPoll(null);
     return null;
   }
 }
@@ -873,6 +910,7 @@ async function refreshDailyReport() {
   if (!btn || btn.disabled || state.dailyRefreshBusy) return;
   const session = getSession();
   if (!session) return;
+
   state.dailyRefreshBusy = true;
   renderDailyRefreshStatus();
   try {
@@ -883,15 +921,19 @@ async function refreshDailyReport() {
       cache: "no-store"
     });
     const body = await response.json().catch(() => ({}));
+
     if (response.status === 409 && body?.reason === "already_current") {
-      showToast("Today's report is already current.");
+      showToast("Today's portfolio data is already current.");
     } else if (!response.ok) {
-      throw new Error(body?.error || "Refresh request failed");
+      throw new Error(body?.error || body?.reason || "Refresh request failed");
     } else {
-      showToast(body?.message || "Daily refresh requested.");
+      showToast(body?.message || "Portfolio refresh queued.");
     }
-    await loadSummary();
+
     await checkDailyRefreshStatus();
+    if (state.dailyRefreshStatus?.refresh_completed || state.dailyRefreshStatus?.report_available_today) {
+      await loadSummary();
+    }
   } catch (e) {
     console.error("Daily refresh failed", e);
     showToast("Could not request today's refresh.");
