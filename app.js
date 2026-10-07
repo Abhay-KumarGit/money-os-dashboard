@@ -679,6 +679,15 @@ function syncModernSelect(select) {
   const label = root.querySelector(".modern-select-label");
   if (label) label.textContent = selected?.textContent || "Select";
 
+  const isStocks = select.id === "stockSort";
+  const direction = state[isStocks ? "stockSortDirection" : "fundSortDirection"];
+  const directionButton = root.querySelector(".modern-select-direction");
+  if (directionButton) {
+    directionButton.textContent = direction === "asc" ? "↑" : "↓";
+    directionButton.setAttribute("aria-label", direction === "asc" ? "Sort ascending. Tap to sort descending." : "Sort descending. Tap to sort ascending.");
+    directionButton.title = direction === "asc" ? "Ascending" : "Descending";
+  }
+
   root.querySelectorAll(".modern-select-option").forEach((option) => {
     const active = option.dataset.value === select.value;
     option.classList.toggle("selected", active);
@@ -720,6 +729,11 @@ function enhanceModernSelect(select) {
 
   trigger.append(label, chevron);
 
+  const direction = document.createElement("button");
+  direction.type = "button";
+  direction.className = "modern-select-direction";
+  direction.setAttribute("aria-label", "Toggle sort direction");
+
   const menu = document.createElement("div");
   menu.className = "modern-select-menu";
   menu.setAttribute("role", "listbox");
@@ -735,7 +749,7 @@ function enhanceModernSelect(select) {
     menu.appendChild(option);
   });
 
-  root.append(trigger, menu);
+  root.append(trigger, direction, menu);
   select.insertAdjacentElement("afterend", root);
   select._modernSelectRoot = root;
   syncModernSelect(select);
@@ -756,6 +770,11 @@ function enhanceModernSelect(select) {
   trigger.addEventListener("click", () => {
     if (root.classList.contains("open")) closeModernSelect(root);
     else openMenu();
+  });
+
+  direction.addEventListener("click", () => {
+    const table = select.id === "stockSort" ? "stocks" : "funds";
+    setHoldingSort(table, select.value);
   });
 
   trigger.addEventListener("keydown", (event) => {
