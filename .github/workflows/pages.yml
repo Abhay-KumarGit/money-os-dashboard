@@ -27,6 +27,23 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Playwright
+        run: |
+          npm install
+          npx playwright install --with-deps chromium
+
+      - name: Run Playwright regression suite
+        run: |
+          python3 -m http.server 4173 >/tmp/money-os-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID' EXIT
+          npx playwright test --project=desktop-chromium --project=mobile-chromium
+
       - name: Upload site
         uses: actions/upload-pages-artifact@v3
         with:
