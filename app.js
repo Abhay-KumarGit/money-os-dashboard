@@ -26,7 +26,11 @@ let state = {
   dailyRefreshStatus: null,
   dailyRefreshBusy: false,
   health: null,
-  healthBusy: false
+  healthBusy: false,
+  stockSortKey: "value",
+  stockSortDirection: "desc",
+  fundSortKey: "value",
+  fundSortDirection: "desc"
 };
 
 let dailyRefreshPollTimer = null;
@@ -595,19 +599,65 @@ function renderMovers() {
   $("movers").innerHTML = moverCard("Best mover", best) + (same ? "" : moverCard("Weakest mover", worst));
 }
 
-function sortedFiltered(items, search, sort) {
+function sortValue(p, key) {
+  if (key === "name") return assetName(p);
+  if (key === "qty") return p.quantity;
+  if (key === "basis") return p.close;
+  if (key === "pnl") return p.unrealized_pnl;
+  if (key === "day") return p.day_change_pct;
+  return p.market_value;
+}
+
+function compareSortValues(a, b, key, direction) {
+  const factor = direction === "asc" ? 1 : -1;
+  if (key === "name") return assetName(a).localeCompare(assetName(b), undefined, { sensitivity: "base" }) * factor;
+
+  const av = Number(sortValue(a, key));
+  const bv = Number(sortValue(b, key));
+  const aMissing = !Number.isFinite(av);
+  const bMissing = !Number.isFinite(bv);
+  if (aMissing && bMissing) return 0;
+  if (aMissing) return 1;
+  if (bMissing) return -1;
+  return (av - bv) * factor;
+}
+
+function sortedFiltered(items, search, sortKey, direction = "desc") {
   const q = search.trim().toLowerCase();
   const filtered = items.filter((p) => {
     if (!q) return true;
     const i = p.instruments || {};
     return [i.symbol, i.name, i.exchange, i.scheme_code].filter(Boolean).join(" ").toLowerCase().includes(q);
   });
-  return filtered.sort((a, b) => {
-    if (sort === "name") return assetName(a).localeCompare(assetName(b));
-    if (sort === "pnl") return num(b.unrealized_pnl) - num(a.unrealized_pnl);
-    if (sort === "day") return num(b.day_change_pct) - num(a.day_change_pct);
-    return num(b.market_value) - num(a.market_value);
+  return filtered.sort((a, b) => compareSortValues(a, b, sortKey, direction));
+}
+
+function updateSortHeaders(table, key, direction) {
+  document.querySelectorAll('.sort-header[data-sort-table="' + table + '"]').forEach((button) => {
+    const active = button.dataset.sortKey === key;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", active ? "true" : "false");
+    const arrow = button.querySelector(".sort-arrow");
+    if (arrow) arrow.textContent = active ? (direction === "asc" ? "↑" : "↓") : "↕";
   });
+}
+
+function setHoldingSort(table, key, direction) {
+  const isStocks = table === "stocks";
+  const keyProp = isStocks ? "stockSortKey" : "fundSortKey";
+  const directionProp = isStocks ? "stockSortDirection" : "fundSortDirection";
+  const select = $(isStocks ? "stockSort" : "fundSort");
+
+  if (!direction) {
+    direction = state[keyProp] === key
+      ? (state[directionProp] === "asc" ? "desc" : "asc")
+      : (key === "name" ? "asc" : "desc");
+  }
+
+  state[keyProp] = key;
+  state[directionProp] = direction;
+  if (select && Array.from(select.options).some((option) => option.value === key)) select.value = key;
+  (isStocks ? renderStocks : renderFunds)();
 }
 
 function stockRow(p) {
@@ -634,8 +684,9 @@ function renderStocks() {
   $("stocksRealized").textContent = signedMoney(m.realized_pnl);
   $("stocksRealized").className = tone(m.realized_pnl);
 
-  const rows = sortedFiltered(items, $("stockSearch").value, $("stockSort").value);
+  const rows = sortedFiltered(items, $("stockSearch").value, state.stockSortKey, state.stockSortDirection);
   $("stockList").innerHTML = rows.length ? rows.map(stockRow).join("") : '<div class="empty-inline">No matching stocks.</div>';
+  updateSortHeaders("stocks", state.stockSortKey, state.stockSortDirection);
 }
 
 function fundRow(p) {
@@ -661,8 +712,9 @@ function renderFunds() {
   $("fundsRealized").textContent = signedMoney(m.realized_pnl);
   $("fundsRealized").className = tone(m.realized_pnl);
 
-  const rows = sortedFiltered(items, $("fundSearch").value, $("fundSort").value);
+  const rows = sortedFiltered(items, $("fundSearch").value, state.fundSortKey, state.fundSortDirection);
   $("fundList").innerHTML = rows.length ? rows.map(fundRow).join("") : '<div class="empty-inline">No matching mutual funds.</div>';
+  updateSortHeaders("funds", state.fundSortKey, state.fundSortDirection);
 }
 
 function transactionRow(t) {
@@ -1412,9 +1464,12 @@ function bindEvents() {
     try { openLearningDialog(JSON.parse(button.dataset.learn)); } catch (err) { console.error("Invalid learning module", err); }
   });
   $("stockSearch").addEventListener("input", renderStocks);
-  $("stockSort").addEventListener("change", renderStocks);
+  $("stockSort").addEventListener("change", (e) => setHoldingSort("stocks", e.target.value, e.target.value === "name" ? "asc" : "desc"));
   $("fundSearch").addEventListener("input", renderFunds);
-  $("fundSort").addEventListener("change", renderFunds);
+  $("fundSort").addEventListener("change", (e) => setHoldingSort("funds", e.target.value, e.target.value === "name" ? "asc" : "desc"));
+  document.querySelectorAll(".sort-header").forEach((button) => {
+    button.addEventListener("click", () => setHoldingSort(button.dataset.sortTable, button.dataset.sortKey));
+  });
   $("changePasswordBtn").addEventListener("click", () => {
     $("dialogPasswordStatus").classList.add("hidden");
     $("newPassword").value = "";
