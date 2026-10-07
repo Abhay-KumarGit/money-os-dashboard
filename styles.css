@@ -342,7 +342,7 @@ canvas{display:block;width:100%;height:250px}
   .modern-select-direction{display:grid}
   .modern-select-menu{left:0;right:50px;min-width:0}
   .list-head{display:none}
-  .asset-row{display:grid;grid-template-columns:1fr 1fr!important;gap:12px;padding:15px 14px;min-height:0}
+  .asset-row{position:relative;display:grid;grid-template-columns:1fr 1fr!important;gap:12px;padding:15px 14px;min-height:0}
   .asset-row>div{display:grid;gap:3px}
   .asset-row>div::before{content:attr(data-label);color:#647080;font-size:9px;text-transform:uppercase;letter-spacing:.08em}
   .asset-row .holding-name{grid-column:1/-1;padding:4px 42px 6px 0;position:relative}
