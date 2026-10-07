@@ -1633,29 +1633,6 @@ html[data-theme="light"] .daily-history-panel{
 }
 
 
-.learning-dialog-actions{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  flex:0 0 auto;
-}
-.learning-privacy-btn{
-  min-height:34px;
-  padding:7px 10px;
-  border:1px solid var(--border);
-  border-radius:9px;
-  background:var(--surface-2);
-  color:var(--muted);
-  font:700 10px/1 system-ui;
-  cursor:pointer;
-  white-space:nowrap;
-}
-.learning-privacy-btn:hover{color:var(--text);border-color:rgba(104,166,255,.4)}
-@media(max-width:560px){
-  .learning-dialog-head{gap:10px}
-  .learning-dialog-actions{gap:6px}
-  .learning-privacy-btn{min-height:32px;padding:6px 8px;font-size:9.5px}
-}
 
 
 /* Modern sort combobox */
