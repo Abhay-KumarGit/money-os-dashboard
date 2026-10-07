@@ -641,13 +641,19 @@ function sortedFiltered(items, search, sortKey, direction = "desc") {
   return filtered.sort((a, b) => compareSortValues(a, b, sortKey, direction));
 }
 
+function sortArrowMarkup(active, direction) {
+  const upActive = active && direction === "asc";
+  const downActive = active && direction === "desc";
+  return '<svg viewBox="0 0 12 14" aria-hidden="true"><path class="' + (upActive ? "is-active" : "") + '" d="M3 5 6 2l3 3"/><path class="' + (downActive ? "is-active" : "") + '" d="m3 9 3 3 3-3"/></svg>';
+}
+
 function updateSortHeaders(table, key, direction) {
   document.querySelectorAll('.sort-header[data-sort-table="' + table + '"]').forEach((button) => {
     const active = button.dataset.sortKey === key;
     button.classList.toggle("active", active);
     button.setAttribute("aria-pressed", active ? "true" : "false");
     const arrow = button.querySelector(".sort-arrow");
-    if (arrow) arrow.textContent = active ? (direction === "asc" ? "↑" : "↓") : "↕";
+    if (arrow) arrow.innerHTML = sortArrowMarkup(active, direction);
   });
 }
 
@@ -828,15 +834,42 @@ function enhanceToolbarSelects() {
   });
 }
 
+function stockIconText(i) {
+  const symbol = String(i?.symbol || "").trim();
+  const name = String(i?.name || "").trim();
+  if (symbol) return symbol.replace(/[^A-Za-z0-9]/g, "").slice(0, 2).toUpperCase() || "S";
+  const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join("");
+  return initials.toUpperCase() || "S";
+}
+
+function stockIconVariant(i) {
+  const seed = String(i?.symbol || i?.name || "stock");
+  let hash = 0;
+  for (let index = 0; index < seed.length; index += 1) hash = (hash * 31 + seed.charCodeAt(index)) >>> 0;
+  return "asset-icon-v" + ((hash % 6) + 1);
+}
+
 function stockRow(p) {
   const i = p.instruments || {};
+  const symbol = i.symbol || i.name || "—";
+  const company = [i.name, i.exchange].filter(Boolean).join(" · ");
   return '<div class="asset-row stock-grid">' +
-    '<div class="holding-name" data-label="Holding"><strong>' + escapeHtml(i.symbol || i.name || "—") + '</strong><small>' + escapeHtml([i.name, i.exchange].filter(Boolean).join(" · ")) + '</small></div>' +
+    '<div class="holding-name holding-with-icon" data-label="Holding">' +
+      '<span class="asset-icon ' + stockIconVariant(i) + '" aria-hidden="true">' + escapeHtml(stockIconText(i)) + '</span>' +
+      '<span class="holding-copy"><strong>' + escapeHtml(symbol) + '</strong><small>' + escapeHtml(company) + '</small></span>' +
+    '</div>' +
     '<div data-label="Qty">' + escapeHtml(privateNumber(p.quantity)) + '</div>' +
     '<div data-label="Basis / LTP"><strong>' + escapeHtml(money(p.close, true)) + '</strong><small>basis ' + escapeHtml(money(p.average_cost, true)) + '</small></div>' +
     '<div data-label="Value"><strong>' + escapeHtml(money(p.market_value)) + '</strong><small>' + escapeHtml(dateLabel(p.price_date)) + '</small></div>' +
     '<div data-label="Today" class="' + tone(p.day_change_pct) + '"><strong>' + escapeHtml(pct(p.day_change_pct)) + '</strong><small>' + (p.day_change == null ? "—" : escapeHtml(signedMoney(p.day_change))) + '</small></div>' +
     '<div data-label="Tracked change" class="' + tone(p.unrealized_pnl) + '"><strong>' + escapeHtml(signedMoney(p.unrealized_pnl)) + '</strong><small>' + escapeHtml(pct(p.return_pct)) + '</small></div>' +
+    '<div class="asset-actions" data-label="Actions">' +
+      '<button class="stock-action-btn" type="button" aria-label="Actions for ' + escapeHtml(symbol) + '" aria-haspopup="menu" aria-expanded="false">•••</button>' +
+      '<div class="stock-action-menu" role="menu" hidden>' +
+        '<button type="button" role="menuitem" data-stock-action="copy-symbol" data-stock-symbol="' + escapeHtml(symbol) + '">Copy symbol</button>' +
+        '<button type="button" role="menuitem" data-stock-action="copy-name" data-stock-name="' + escapeHtml(i.name || symbol) + '">Copy name</button>' +
+      '</div>' +
+    '</div>' +
   '</div>';
 }
 
@@ -1647,6 +1680,56 @@ function bindEvents() {
   $("fundSort").addEventListener("change", (e) => setHoldingSort("funds", e.target.value, e.target.value === "name" ? "asc" : "desc"));
   document.querySelectorAll(".sort-header").forEach((button) => {
     button.addEventListener("click", () => setHoldingSort(button.dataset.sortTable, button.dataset.sortKey));
+  });
+  document.addEventListener("click", async (event) => {
+    const actionButton = event.target.closest(".stock-action-btn");
+    if (actionButton) {
+      const actions = actionButton.closest(".asset-actions");
+      const menu = actions?.querySelector(".stock-action-menu");
+      document.querySelectorAll(".stock-action-menu:not([hidden])").forEach((other) => {
+        if (other !== menu) {
+          other.hidden = true;
+          other.closest(".asset-actions")?.querySelector(".stock-action-btn")?.setAttribute("aria-expanded", "false");
+        }
+      });
+      if (menu) {
+        const willOpen = menu.hidden;
+        menu.hidden = !willOpen;
+        actionButton.setAttribute("aria-expanded", willOpen ? "true" : "false");
+        if (willOpen) menu.querySelector('[role="menuitem"]')?.focus();
+      }
+      return;
+    }
+
+    const item = event.target.closest("[data-stock-action]");
+    if (item) {
+      const value = item.dataset.stockAction === "copy-symbol" ? item.dataset.stockSymbol : item.dataset.stockName;
+      try {
+        await navigator.clipboard.writeText(value || "");
+        showToast(item.dataset.stockAction === "copy-symbol" ? "Stock symbol copied" : "Stock name copied");
+      } catch {
+        showToast("Could not copy to clipboard");
+      }
+      const menu = item.closest(".stock-action-menu");
+      if (menu) menu.hidden = true;
+      item.closest(".asset-actions")?.querySelector(".stock-action-btn")?.setAttribute("aria-expanded", "false");
+      return;
+    }
+
+    document.querySelectorAll(".stock-action-menu:not([hidden])").forEach((menu) => {
+      if (menu.contains(event.target)) return;
+      menu.hidden = true;
+      menu.closest(".asset-actions")?.querySelector(".stock-action-btn")?.setAttribute("aria-expanded", "false");
+    });
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    document.querySelectorAll(".stock-action-menu:not([hidden])").forEach((menu) => {
+      menu.hidden = true;
+      const button = menu.closest(".asset-actions")?.querySelector(".stock-action-btn");
+      button?.setAttribute("aria-expanded", "false");
+      button?.focus();
+    });
   });
   enhanceToolbarSelects();
   $("changePasswordBtn").addEventListener("click", () => {
