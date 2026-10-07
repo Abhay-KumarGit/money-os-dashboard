@@ -1016,3 +1016,13 @@ html[data-theme="light"] body::before{
   .nav-rail{display:none}
   .content{width:100%}
 }
+
+/* Mobile bottom-nav invariant: exactly five equal tabs across the viewport. */
+@media (max-width: 780px){
+  .mobile-nav{
+    width:100vw;
+    max-width:none;
+    box-sizing:border-box;
+    grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+  }
+}
