@@ -2078,3 +2078,325 @@ html[data-theme="light"] .stock-brand{
   opacity:0;
 }
 
+
+
+/* Heritage orbit theme v38
+   CSS-only enhancement layered on the current Money OS UI.
+   Keeps existing layout, behavior, privacy, sorting, learning, accordion and responsive rules intact. */
+:root{
+  --heritage:#d3a05f;
+  --heritage-strong:#e3b36f;
+  --heritage-soft:rgba(211,160,95,.10);
+  --heritage-line:rgba(211,160,95,.18);
+  --heritage-glow:rgba(227,179,111,.14);
+}
+
+body{
+  background:
+    radial-gradient(80rem 38rem at 86% -16%,rgba(24,40,57,.30),transparent 66%),
+    radial-gradient(55rem 30rem at 18% -12%,rgba(19,34,49,.22),transparent 70%),
+    var(--bg);
+}
+
+/* Top-half orbital/jali artwork: intentionally decorative only, with no DOM or interaction changes. */
+body::before{
+  content:"";
+  position:fixed;
+  z-index:-1;
+  inset:0 0 auto 0;
+  height:min(58vh,680px);
+  pointer-events:none;
+  opacity:.98;
+  background:
+    radial-gradient(circle at 93% -9%,
+      transparent 0 84px,
+      rgba(222,171,105,.13) 85px 87px,
+      transparent 88px 132px,
+      rgba(117,141,169,.10) 133px 135px,
+      transparent 136px 184px,
+      rgba(222,171,105,.11) 185px 188px,
+      transparent 189px 244px,
+      rgba(222,171,105,.085) 245px 247px,
+      transparent 248px 318px,
+      rgba(120,143,169,.07) 319px 321px,
+      transparent 322px),
+    repeating-conic-gradient(from 202deg at 93% -8%,
+      transparent 0deg 9deg,
+      rgba(222,171,105,.055) 9.15deg 9.42deg,
+      transparent 9.7deg 20deg),
+    repeating-radial-gradient(circle at 24% -18%,
+      transparent 0 78px,
+      rgba(211,160,95,.030) 79px 80px,
+      transparent 81px 132px),
+    radial-gradient(54rem 24rem at 74% 1%,rgba(22,38,54,.26),transparent 68%),
+    radial-gradient(42rem 25rem at 31% -10%,rgba(23,42,59,.16),transparent 72%),
+    linear-gradient(180deg,rgba(7,13,20,.03),rgba(7,13,20,0));
+  -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 47%,rgba(0,0,0,.78) 70%,transparent 100%);
+  mask-image:linear-gradient(to bottom,#000 0%,#000 47%,rgba(0,0,0,.78) 70%,transparent 100%);
+}
+
+/* Fine architectural lattice. Concentrated at top-right, with a quieter echo on the left. */
+body::after{
+  content:"";
+  position:fixed;
+  z-index:-1;
+  inset:0 0 auto 0;
+  height:min(58vh,680px);
+  pointer-events:none;
+  opacity:.76;
+  background:
+    repeating-linear-gradient(34deg,
+      transparent 0 19px,
+      rgba(211,160,95,.034) 20px 21px,
+      transparent 22px 41px),
+    repeating-linear-gradient(-34deg,
+      transparent 0 19px,
+      rgba(137,157,180,.025) 20px 21px,
+      transparent 22px 41px),
+    radial-gradient(circle at 72% 17%,rgba(227,179,111,.22) 0 1.5px,transparent 2.2px),
+    radial-gradient(circle at 55% 10%,rgba(227,179,111,.18) 0 1.4px,transparent 2.1px),
+    radial-gradient(circle at 37% 18%,rgba(227,179,111,.16) 0 1.2px,transparent 2px);
+  background-size:auto,auto,180px 180px,235px 235px,290px 290px;
+  -webkit-mask-image:
+    radial-gradient(ellipse 67% 88% at 96% -8%,#000 0 57%,transparent 78%),
+    radial-gradient(ellipse 38% 66% at 25% -5%,rgba(0,0,0,.72) 0 35%,transparent 77%);
+  mask-image:
+    radial-gradient(ellipse 67% 88% at 96% -8%,#000 0 57%,transparent 78%),
+    radial-gradient(ellipse 38% 66% at 25% -5%,rgba(0,0,0,.72) 0 35%,transparent 77%);
+}
+
+/* Slightly deeper blue-black surfaces with restrained warm edge detail. */
+.panel,
+.metric,
+.summary-strip,
+.settings-accordion,
+.holdings-panel,
+.activity-panel{
+  border-color:rgba(112,132,154,.24);
+  box-shadow:0 16px 42px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.014);
+}
+.panel,
+.metric,
+.summary-strip{
+  background:linear-gradient(180deg,rgba(17,24,33,.975),rgba(11,17,24,.975));
+}
+.hero{
+  background:
+    radial-gradient(48rem 19rem at 91% -18%,rgba(211,160,95,.055),transparent 68%),
+    radial-gradient(28rem 16rem at 12% 0%,rgba(104,166,255,.065),transparent 70%),
+    linear-gradient(180deg,rgba(17,25,35,.975),rgba(11,17,24,.975));
+}
+.panel:hover{
+  border-color:rgba(135,151,171,.30);
+}
+
+/* Header controls gain the same material language without turning bronze-heavy. */
+.top-action,
+.nav-dock-toggle,
+.compact-control,
+.daily-history-tab{
+  background:rgba(9,15,23,.42);
+  border-color:rgba(111,132,157,.26);
+  backdrop-filter:blur(10px);
+}
+.top-action:hover,
+.nav-dock-toggle:hover,
+.compact-control:hover,
+.daily-history-tab:hover{
+  border-color:rgba(211,160,95,.26);
+  background:rgba(18,24,32,.72);
+}
+
+/* Existing privacy blue remains meaningful; bronze is decorative, not a replacement status color. */
+.privacy-toggle[aria-pressed="true"]{
+  background:var(--accent-soft);
+  border-color:rgba(104,166,255,.34);
+  color:#dce8ff;
+}
+
+/* Fading bronze selection treatment requested for the side navigation. */
+@media (min-width:901px){
+  .nav-rail .tabs button{
+    transition:color .18s ease,background .22s ease,box-shadow .22s ease;
+  }
+  .nav-rail .tabs button:hover{
+    color:var(--text);
+    background:linear-gradient(90deg,rgba(211,160,95,.055),rgba(211,160,95,.012) 68%,transparent);
+  }
+  .nav-rail .tabs button.active{
+    color:#fff7ec;
+    background:linear-gradient(90deg,rgba(211,160,95,.18) 0%,rgba(211,160,95,.075) 48%,rgba(211,160,95,.012) 82%,transparent 100%);
+    box-shadow:inset 0 1px 0 rgba(227,179,111,.06),inset 0 -1px 0 rgba(227,179,111,.035);
+  }
+  .nav-rail .tabs button.active::before{
+    width:3px;
+    background:linear-gradient(180deg,transparent 0%,#e8bc7b 22%,#d59b55 72%,transparent 100%);
+    box-shadow:0 0 14px rgba(227,179,111,.22);
+  }
+  .nav-rail-head{
+    border-color:rgba(211,160,95,.09);
+  }
+  .nav-rail-title{
+    color:#9b9aa0;
+  }
+}
+
+/* Keep editorial Daily layout open and unboxed while harmonising separators. */
+.daily-featured,
+.daily-card,
+.daily-history-panel{
+  border-color:rgba(139,151,165,.17);
+}
+.daily-list-item,
+.daily-section-block+.daily-section-block,
+.daily-history-report{
+  border-color:rgba(139,151,165,.15);
+}
+
+/* Subtle warm material details across controls, tables and settings without changing semantics. */
+.search,
+.toolbar select,
+.modern-select,
+.field input{
+  border-color:rgba(107,128,151,.26);
+  background:rgba(8,14,21,.68);
+}
+.search:focus-within,
+.toolbar select:focus,
+.modern-select:focus-within,
+.field input:focus{
+  border-color:rgba(211,160,95,.30);
+}
+.asset-list>div:hover,
+.activity-row:hover,
+.settings-compact-row:hover{
+  background:linear-gradient(90deg,rgba(211,160,95,.025),transparent 68%);
+}
+.settings-accordion[open]>.settings-accordion-head{
+  border-bottom-color:rgba(211,160,95,.11);
+}
+.settings-accordion-head:hover{
+  background:linear-gradient(90deg,rgba(211,160,95,.03),transparent 74%);
+}
+.info-button:hover,
+.info-button:focus-visible{
+  border-color:rgba(211,160,95,.30);
+}
+
+/* Date/report tabs use a restrained bronze selection while Learn-this/action blue remains unchanged. */
+.daily-history-tab.active{
+  color:#fff4e5;
+  background:linear-gradient(180deg,rgba(211,160,95,.14),rgba(211,160,95,.075));
+  border-color:rgba(211,160,95,.27);
+}
+
+/* Bottom navigation carries the theme across phones without changing its five-column invariant. */
+@media(max-width:780px){
+  body::before,
+  body::after{
+    height:min(45vh,430px);
+  }
+  body::before{
+    background:
+      radial-gradient(circle at 106% -8%,
+        transparent 0 62px,
+        rgba(222,171,105,.12) 63px 65px,
+        transparent 66px 105px,
+        rgba(117,141,169,.09) 106px 108px,
+        transparent 109px 154px,
+        rgba(222,171,105,.09) 155px 157px,
+        transparent 158px 218px),
+      repeating-conic-gradient(from 210deg at 104% -6%,transparent 0deg 12deg,rgba(222,171,105,.045) 12.2deg 12.5deg,transparent 12.8deg 26deg),
+      repeating-radial-gradient(circle at 18% -14%,transparent 0 58px,rgba(211,160,95,.025) 59px 60px,transparent 61px 104px),
+      radial-gradient(31rem 18rem at 82% 0%,rgba(23,42,59,.22),transparent 70%);
+  }
+  body::after{
+    opacity:.55;
+    background-size:auto,auto,145px 145px,190px 190px,235px 235px;
+  }
+  .mobile-nav{
+    background:rgba(7,12,19,.955);
+    border-top-color:rgba(211,160,95,.12);
+    box-shadow:0 -12px 34px rgba(0,0,0,.26);
+    backdrop-filter:blur(18px);
+  }
+  .mobile-nav button.active{
+    color:#fff5e8;
+    background:linear-gradient(180deg,rgba(211,160,95,.12),rgba(211,160,95,.045));
+  }
+  .mobile-nav button.active::before{
+    content:"";
+    position:absolute;
+    left:28%;
+    right:28%;
+    top:0;
+    height:2px;
+    border-radius:2px;
+    background:linear-gradient(90deg,transparent,#d8a45f,transparent);
+    box-shadow:0 0 9px rgba(227,179,111,.18);
+  }
+  .mobile-nav button{position:relative}
+}
+
+/* Light mode keeps the artwork and warm material cues, but at much lower intensity. */
+html[data-theme="light"]{
+  --heritage:#a87639;
+  --heritage-strong:#b98342;
+  --heritage-soft:rgba(168,118,57,.07);
+  --heritage-line:rgba(168,118,57,.12);
+  --heritage-glow:rgba(168,118,57,.08);
+}
+html[data-theme="light"] body{
+  background:
+    radial-gradient(70rem 34rem at 87% -14%,rgba(115,139,166,.09),transparent 68%),
+    radial-gradient(50rem 28rem at 17% -12%,rgba(168,118,57,.045),transparent 72%),
+    var(--bg);
+}
+html[data-theme="light"] body::before{
+  opacity:.62;
+  background:
+    radial-gradient(circle at 93% -9%,
+      transparent 0 84px,
+      rgba(168,118,57,.10) 85px 87px,
+      transparent 88px 132px,
+      rgba(87,111,139,.07) 133px 135px,
+      transparent 136px 184px,
+      rgba(168,118,57,.07) 185px 188px,
+      transparent 189px 244px),
+    repeating-conic-gradient(from 202deg at 93% -8%,transparent 0deg 10deg,rgba(126,95,58,.035) 10.1deg 10.35deg,transparent 10.6deg 22deg),
+    repeating-radial-gradient(circle at 24% -18%,transparent 0 78px,rgba(126,95,58,.025) 79px 80px,transparent 81px 132px),
+    radial-gradient(54rem 24rem at 74% 1%,rgba(108,132,158,.08),transparent 68%);
+}
+html[data-theme="light"] body::after{
+  opacity:.27;
+}
+html[data-theme="light"] .panel,
+html[data-theme="light"] .metric,
+html[data-theme="light"] .summary-strip{
+  background:linear-gradient(180deg,rgba(255,255,255,.985),rgba(249,251,253,.985));
+  border-color:rgba(135,151,171,.28);
+}
+html[data-theme="light"] .top-action,
+html[data-theme="light"] .nav-dock-toggle,
+html[data-theme="light"] .compact-control,
+html[data-theme="light"] .daily-history-tab{
+  background:rgba(255,255,255,.72);
+}
+@media(min-width:901px){
+  html[data-theme="light"] .nav-rail .tabs button.active{
+    color:#30261d;
+    background:linear-gradient(90deg,rgba(168,118,57,.12),rgba(168,118,57,.045) 55%,transparent 100%);
+  }
+}
+html[data-theme="light"] .mobile-nav button.active{
+  color:#4c3823;
+  background:linear-gradient(180deg,rgba(168,118,57,.10),rgba(168,118,57,.035));
+}
+
+/* Accessibility: keep focus unambiguous even with the warmer visual language. */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+summary:focus-visible{
+  outline-color:var(--accent);
+}
