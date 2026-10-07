@@ -2056,3 +2056,24 @@ html[data-theme="light"] .stock-brand{
   .stock-brand-activity{width:34px;height:34px}
 }
 
+/* Brand visibility fix v37 */
+.stock-brand{
+  isolation:isolate;
+}
+.stock-brand-fallback{
+  z-index:1;
+}
+.stock-brand-logo{
+  position:absolute;
+  inset:0;
+  z-index:2;
+  opacity:0;
+  transition:opacity .12s ease;
+}
+.stock-brand.brand-loaded .stock-brand-logo{
+  opacity:1;
+}
+.stock-brand.brand-loaded .stock-brand-fallback{
+  opacity:0;
+}
+
