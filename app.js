@@ -172,12 +172,6 @@ function updatePrivacyControls() {
     status.textContent = masked ? "Hidden" : "Visible";
     status.classList.toggle("active", masked);
   }
-  const learningPrivacy = $("learningDialogPrivacy");
-  if (learningPrivacy) {
-    learningPrivacy.textContent = masked ? "Show values" : "Hide values";
-    learningPrivacy.setAttribute("aria-label", masked ? "Show financial values in this lesson" : "Hide financial values in this lesson");
-    learningPrivacy.setAttribute("aria-pressed", String(!masked));
-  }
 }
 
 function setPrivacy(masked) {
@@ -1667,8 +1661,20 @@ function bindEvents() {
   document.querySelectorAll(".info-button").forEach((el) => el.addEventListener("click", () => openInfo(el.dataset.info)));
   $("closeInfoDialog").addEventListener("click", () => $("infoDialog").close());
   $("closeLearningDialog")?.addEventListener("click", () => $("learningDialog").close());
-  $("learningDialogPrivacy")?.addEventListener("click", togglePrivacy);
   $("learningDialog")?.addEventListener("close", () => { state.currentLearningLesson = null; });
+
+  // Close modal cards when the user clicks the native dialog backdrop.
+  // Route through each dialog's existing close button so dialog-specific
+  // cleanup (for example privacy-PIN state) still runs.
+  document.querySelectorAll("dialog").forEach((dialog) => {
+    dialog.addEventListener("click", (event) => {
+      if (event.target !== dialog) return;
+      const closeButton = dialog.querySelector(".icon-close");
+      if (closeButton) closeButton.click();
+      else if (dialog.open) dialog.close();
+    });
+  });
+
   document.addEventListener("click", (e) => {
     const button = e.target.closest(".learn-this-btn");
     if (!button?.dataset.learn) return;
