@@ -835,9 +835,9 @@ function enhanceToolbarSelects() {
 const STOCK_BRAND_DOMAINS = Object.freeze({
   RELIANCE: "ril.com",
   TCS: "tcs.com",
-  HDFCBANK: "hdfcbank.com",
+  HDFCBANK: "hdfc.bank.in",
   INFY: "infosys.com",
-  ICICIBANK: "icicibank.com",
+  ICICIBANK: "icici.bank.in",
   LT: "larsentoubro.com",
   AXISBANK: "axisbank.com",
   VEDL: "vedantalimited.com",
@@ -846,10 +846,22 @@ const STOCK_BRAND_DOMAINS = Object.freeze({
   VOGL: "vedantaoilandgas.com",
   VEDPOWER: "vedantapower.com",
   TMPV: "tatamotors.com",
-  TMCV: "cv.tatamotors.com",
+  TMCV: "tatamotors.com",
   TATAMOTORS: "tatamotors.com",
   AERONEU: "aeroflexneu.com",
   IRCTC: "irctc.co.in",
+  GRSE: "grse.in",
+  TITAGARH: "titagarh.in",
+  NAZARA: "nazara.com",
+  ADANIPORTS: "adaniports.com",
+  ADANIPOWER: "adani.com",
+  ARVIND: "arvind.com",
+  STYRENIX: "styrenix.com",
+  VAML: "vedantaaluminium.com",
+  PFC: "pfcindia.co.in",
+  TECHM: "techmahindra.com",
+  JINDRILL: "jindal.com",
+  JWIL: "jupiterwagons.com",
   SBIN: "sbi.co.in",
   ITC: "itcportal.com",
   BHARTIARTL: "airtel.in",
@@ -864,7 +876,6 @@ const STOCK_BRAND_DOMAINS = Object.freeze({
   ASIANPAINT: "asianpaints.com",
   BAJFINANCE: "bajajfinserv.in",
   BAJAJFINSV: "bajajfinserv.in",
-  TECHM: "techmahindra.com",
   ONGC: "ongcindia.com",
   NTPC: "ntpc.co.in",
   POWERGRID: "powergrid.in",
@@ -878,8 +889,33 @@ const STOCK_BRAND_DOMAINS = Object.freeze({
   BPCL: "bharatpetroleum.in",
   NESTLEIND: "nestle.in",
   ADANIENT: "adani.com",
-  ADANIPORTS: "adaniports.com",
   ULTRACEMCO: "ultratechcement.com"
+});
+
+const OFFICIAL_BRAND_ASSETS = Object.freeze({
+  AERONEU: "https://aeroflexneu.com/wp-content/uploads/2022/10/Aeroflex-Neu_Logo-1.png",
+  ITCHOTELS: "https://www.itchotels.com/itchotels-favicon.svg",
+  VISL: "https://www.vedantaironandsteel.com/wp-content/themes/iob-home/images/iob-logo.png",
+  VOGL: "https://www.vedantaoilandgas.com/wp-content/uploads/2026/05/Vedanta-OilandGasLogo.webp",
+  VEDPOWER: "https://www.vedantapower.com/wp-content/uploads/2026/02/cropped-cropped-VP-logo-design_V6-06-scaled-1-270x270.png",
+  GRSE: "https://www.grse.in/wp-content/uploads/2022/04/logo.png",
+  TITAGARH: "https://www.titagarh.in/fab.png",
+  NAZARA: "https://www.nazara.com/assets/N-CyrtXiHt.svg",
+  ARVIND: "https://www.arvind.com/themes/custom/arvind_custom/components/layout/header/img/Aravind_new_logo.svg",
+  VAML: "https://d1rbiogke1jwo5.cloudfront.net/wp-content/themes/VedantaAluminiumAndPower/images/Vedanta-Aluminium-Metal-Limited-Logo.png",
+  JINDRILL: "https://www.jindal.com/jdil/img/jdil-logo.png",
+  VEDL: "https://www.vedantalimited.com/img/vedanta-logo.svg",
+  JWIL: "https://jupiterwagons.com/wp-content/themes/Jupiter/images/jwl_newlogo.png",
+  TMPV: "https://www.tatamotors.com/wp-content/themes/TataMotors/images/tata_logo.svg",
+  TMCV: "https://www.tatamotors.com/wp-content/themes/TataMotors/images/tata_logo.svg",
+  TATAMOTORS: "https://www.tatamotors.com/wp-content/themes/TataMotors/images/tata_logo.svg",
+  IRCTC: "https://www.irctc.co.in/nget/assets/images/logo.png",
+  ITC: "https://itcportal.com/content/dam/itc-corporate/favicon-itc.png",
+  INFY: "https://www.infosys.com/content/dam/infosys-web/burger-menu/en/images/logo.svg",
+  HDFCBANK: "https://www.hdfc.bank.in/content/dam/hdfcbankpws/home-page/hdfc-bank-logo.svg",
+  TCS: "https://www.tcs.com/content/dam/global-tcs/en/images/home/tata-logo-1.svg",
+  RELIANCE: "https://rilstaticasset.akamaized.net/sites/default/files/2022-11/reliance-industries_logo1.png",
+  LT: "https://2025prodstorageaccount-eqdyc8g8hpccdfez.a02.azurefd.net/ltprod/media/d44ph50r/lt.svg"
 });
 
 const STOCK_NAME_BRANDS = [
@@ -929,16 +965,30 @@ const FUND_BRAND_DOMAINS = [
 ];
 
 const BRAND_SCALE = Object.freeze({
-  ITCHOTELS: 1.34,
-  TATAMOTORS: 1.42,
-  TMPV: 1.42,
-  TMCV: 1.42,
-  ITC: 1.24,
-  IRCTC: 1.28,
-  AERONEU: 1.26,
-  VISL: 1.20,
-  VOGL: 1.22,
-  VEDPOWER: 1.22
+  AERONEU: 1.05,
+  ITCHOTELS: 1.18,
+  VISL: 1.03,
+  VOGL: 1.02,
+  VEDPOWER: 1.16,
+  GRSE: 1.12,
+  TITAGARH: 1.15,
+  NAZARA: 1.12,
+  ARVIND: 0.93,
+  VAML: 0.93,
+  JINDRILL: 1.02,
+  VEDL: 1.05,
+  JWIL: 0.96,
+  ITCHOTELS: 1.18,
+  TATAMOTORS: 1.38,
+  TMPV: 1.38,
+  TMCV: 1.38,
+  IRCTC: 1.18,
+  ITC: 1.12,
+  INFY: 1.08,
+  HDFCBANK: 1.00,
+  TCS: 1.28,
+  RELIANCE: 1.05,
+  LT: 1.18
 });
 
 function normalizedStockSymbol(i) {
@@ -970,24 +1020,35 @@ function instrumentBrandDomain(i) {
 function instrumentBrandScale(i) {
   const symbol = normalizedStockSymbol(i);
   if (BRAND_SCALE[symbol]) return BRAND_SCALE[symbol];
-  const type = String(i?.asset_type || "").toUpperCase();
-  return type === "MF" ? 1.16 : 1.12;
+  return String(i?.asset_type || "").toUpperCase() === "MF" ? 1.08 : 1.10;
+}
+
+function instrumentBrandSources(i) {
+  const symbol = normalizedStockSymbol(i);
+  const domain = instrumentBrandDomain(i);
+  const sources = [];
+  if (OFFICIAL_BRAND_ASSETS[symbol]) sources.push(OFFICIAL_BRAND_ASSETS[symbol]);
+  if (domain) {
+    sources.push("https://unavatar.io/domain/" + encodeURIComponent(domain) + "?size=256&fallback=false");
+    sources.push("https://icon.horse/icon/" + encodeURIComponent(domain));
+  }
+  return [...new Set(sources)];
 }
 
 function instrumentBrandLogoUrl(i) {
-  const domain = instrumentBrandDomain(i);
-  if (!domain) return "";
-  return "https://icon.horse/icon/" + encodeURIComponent(domain);
+  return instrumentBrandSources(i)[0] || "";
 }
 
 function instrumentBrandHtml(i, extraClass = "", priority = "auto") {
-  const src = instrumentBrandLogoUrl(i);
+  const sources = instrumentBrandSources(i);
+  const src = sources[0] || "";
   const initials = instrumentBrandInitials(i);
   const title = normalizedStockSymbol(i) || String(i?.name || "Investment");
   const scale = instrumentBrandScale(i);
+  const encodedSources = escapeHtml(JSON.stringify(sources));
   return '<span class="stock-brand ' + escapeHtml(extraClass) + '" title="' + escapeHtml(title) + '" style="--brand-scale:' + escapeHtml(scale) + '">' +
     '<span class="stock-brand-fallback" aria-hidden="true">' + escapeHtml(initials) + '</span>' +
-    (src ? '<img class="stock-brand-logo" src="' + escapeHtml(src) + '" alt="" width="40" height="40" loading="eager" decoding="async" referrerpolicy="no-referrer" fetchpriority="' + escapeHtml(priority) + '">' : '') +
+    (src ? '<img class="stock-brand-logo" src="' + escapeHtml(src) + '" data-brand-sources="' + encodedSources + '" data-brand-index="0" alt="" width="40" height="40" loading="eager" decoding="async" referrerpolicy="no-referrer" fetchpriority="' + escapeHtml(priority) + '">' : '') +
   '</span>';
 }
 
@@ -1033,7 +1094,7 @@ function warmBrandImages(data) {
 
   return Promise.race([
     Promise.allSettled(loaders),
-    new Promise((resolve) => setTimeout(resolve, 900))
+    new Promise((resolve) => setTimeout(resolve, 1200))
   ]);
 }
 
@@ -1954,6 +2015,15 @@ function bindEvents() {
   document.addEventListener("error", (event) => {
     const img = event.target;
     if (!(img instanceof HTMLImageElement) || !img.classList.contains("stock-brand-logo")) return;
+    let sources = [];
+    try { sources = JSON.parse(img.dataset.brandSources || "[]"); } catch {}
+    const current = Number(img.dataset.brandIndex || 0);
+    const next = current + 1;
+    if (next < sources.length) {
+      img.dataset.brandIndex = String(next);
+      img.src = sources[next];
+      return;
+    }
     img.hidden = true;
     img.closest(".stock-brand")?.classList.remove("brand-loaded");
   }, true);
