@@ -455,7 +455,7 @@ body{
   .page-head h2{font-size:27px}
 
   .mobile-nav{
-    position:fixed;z-index:40;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));
+    position:fixed;z-index:40;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
     background:rgba(10,14,20,.96);backdrop-filter:blur(20px);border-top:1px solid rgba(70,85,105,.36);
     padding:5px 4px max(7px,env(safe-area-inset-bottom));box-shadow:0 -10px 30px rgba(0,0,0,.24)
   }
