@@ -1,5 +1,6 @@
-const CACHE = "money-os-v35";
-const ASSETS = ["./","./index.html","./app.js?v=35","./styles.css?v=35","./manifest.webmanifest","./icon.svg"];
+const CACHE = "money-os-v36";
+const ASSETS = ["./","./index.html","./app.js?v=36","./styles.css?v=36","./manifest.webmanifest","./icon.svg"];
+const LOGO_HOSTS = new Set(["www.google.com"]);
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS)));
@@ -14,8 +15,34 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("fetch", (event) => {
+  if (event.request.method !== "GET") return;
+
   const url = new URL(event.request.url);
-  if (event.request.method !== "GET" || url.origin !== self.location.origin) return;
+  const isLocal = url.origin === self.location.origin;
+  const isBrandLogo = LOGO_HOSTS.has(url.hostname) && url.pathname === "/s2/favicons";
+
+  if (!isLocal && !isBrandLogo) return;
+
+  if (isBrandLogo) {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE);
+      const cached = await cache.match(event.request);
+      if (cached) return cached;
+
+      try {
+        const response = await fetch(event.request);
+        if (response.ok || response.type === "opaque") {
+          cache.put(event.request, response.clone()).catch(() => {});
+        }
+        return response;
+      } catch (error) {
+        const fallback = await cache.match(event.request);
+        if (fallback) return fallback;
+        throw error;
+      }
+    })());
+    return;
+  }
 
   event.respondWith(
     fetch(event.request)
