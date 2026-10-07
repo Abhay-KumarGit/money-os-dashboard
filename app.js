@@ -1406,9 +1406,10 @@ function instrumentBrandHtml(i, extraClass = "", priority = "auto") {
   const title = normalizedStockSymbol(i) || String(i?.name || "Investment");
   const scale = instrumentBrandScale(i);
   const encodedSources = escapeHtml(JSON.stringify(sources));
+  const eager = priority === "high";
   return '<span class="stock-brand ' + escapeHtml(extraClass) + '" title="' + escapeHtml(title) + '" style="--brand-scale:' + escapeHtml(scale) + '">' +
     '<span class="stock-brand-fallback" aria-hidden="true">' + escapeHtml(initials) + '</span>' +
-    (src ? '<img class="stock-brand-logo" src="' + escapeHtml(src) + '" data-brand-sources="' + encodedSources + '" data-brand-index="0" alt="" width="40" height="40" loading="eager" decoding="async" referrerpolicy="no-referrer" fetchpriority="' + escapeHtml(priority) + '">' : '') +
+    (src ? '<img class="stock-brand-logo" src="' + escapeHtml(src) + '" data-brand-sources="' + encodedSources + '" data-brand-index="0" alt="" width="40" height="40" loading="' + (eager ? "eager" : "lazy") + '" decoding="async" referrerpolicy="no-referrer" fetchpriority="' + (eager ? "high" : "low") + '">' : '') +
   '</span>';
 }
 
@@ -1442,21 +1443,28 @@ function matchPortfolioInstrument(text) {
 function warmBrandImages(data) {
   if (!("Image" in window)) return Promise.resolve();
   const positions = Array.isArray(data?.positions) ? data.positions : [];
-  const urls = [...new Set(positions.map((p) => instrumentBrandLogoUrl(p.instruments || {})).filter(Boolean))];
+  const urls = [...new Set(
+    positions
+      .map((p) => OFFICIAL_BRAND_ASSETS[normalizedStockSymbol(p.instruments || {})] || "")
+      .filter(Boolean)
+  )].slice(0, 8);
   if (!urls.length) return Promise.resolve();
 
-  const loaders = urls.map((src) => new Promise((resolve) => {
+  const load = () => Promise.allSettled(urls.map((src) => new Promise((resolve) => {
     const img = new Image();
     img.decoding = "async";
     img.onload = resolve;
     img.onerror = resolve;
     img.src = src;
-  }));
+  })));
 
-  return Promise.race([
-    Promise.allSettled(loaders),
-    new Promise((resolve) => setTimeout(resolve, 1200))
-  ]);
+  return new Promise((resolve) => {
+    if ("requestIdleCallback" in window) {
+      window.requestIdleCallback(() => load().then(resolve), { timeout: 1200 });
+    } else {
+      window.setTimeout(() => load().then(resolve), 0);
+    }
+  });
 }
 
 function findPositionFromAction(item) {
@@ -1516,7 +1524,7 @@ function stockRow(p) {
     : "";
   return '<div class="asset-row stock-grid">' +
     '<div class="holding-name holding-with-icon" data-label="Holding">' +
-      stockBrandHtml(i, "stock-brand-row", "high") +
+      stockBrandHtml(i, "stock-brand-row") +
       '<span class="holding-copy"><strong>' + escapeHtml(symbol) + '</strong><small>' + escapeHtml(company) + '</small></span>' +
     '</div>' +
     '<div data-label="Qty">' + escapeHtml(privateNumber(p.quantity)) + '</div>' +
@@ -1559,7 +1567,7 @@ function fundRow(p) {
   const instrumentId = String(p.instrument_id ?? "");
   return '<div class="asset-row fund-grid">' +
     '<div class="holding-name holding-with-icon" data-label="Fund">' +
-      instrumentBrandHtml(i, "stock-brand-row fund-brand-row", "high") +
+      instrumentBrandHtml(i, "stock-brand-row fund-brand-row") +
       '<span class="holding-copy"><strong>' + escapeHtml(name) + '</strong><small>' + escapeHtml(schemeCode ? "Scheme " + schemeCode : "Mutual fund") + '</small></span>' +
     '</div>' +
     '<div data-label="Units">' + escapeHtml(privateNumber(p.quantity)) + '</div>' +
@@ -2010,7 +2018,7 @@ function renderDailyRefreshStatus() {
     label.textContent = s.report_available_today ? "Refresh data" : "Refresh today";
   } else {
     btn.disabled = true;
-    label.textContent = "Not due today";
+    label.textContent = s.status === "waiting_for_session" ? "Waiting for market" : "Not due today";
   }
 }
 
