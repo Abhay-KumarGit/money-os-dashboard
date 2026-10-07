@@ -1,5 +1,5 @@
-const CACHE = "money-os-v23";
-const ASSETS = ["./","./index.html","./app.js?v=23","./styles.css?v=23","./manifest.webmanifest","./icon.svg"];
+const CACHE = "money-os-v24";
+const ASSETS = ["./","./index.html","./app.js?v=24","./styles.css?v=24","./manifest.webmanifest","./icon.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS)));
