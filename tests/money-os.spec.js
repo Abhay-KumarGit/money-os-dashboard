@@ -149,7 +149,7 @@ test("authenticated portfolio intelligence and interactions work", async ({ page
   await page.locator('.tabs [data-nav="overview"]').click();
   await expect(page.getByText("Portfolio intelligence")).toBeVisible();
   await expect(page.locator("#portfolioScore")).toContainText("••••");
-  await expect(page.getByText("Risk radar")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Risk radar", exact: true })).toBeVisible();
 
   await page.locator('.tabs [data-nav="stocks"]').click();
   await expect(page.locator("#stockList .asset-row")).toHaveCount(1);
