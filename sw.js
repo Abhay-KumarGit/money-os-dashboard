@@ -1,5 +1,5 @@
 const CACHE = "money-os-v38";
-const ASSETS = ["./","./index.html","./app.js?v=36","./styles.css?v=38","./manifest.webmanifest","./icon.svg"];
+const ASSETS = ["./","./index.html","./app.js?v=38","./styles.css?v=38","./manifest.webmanifest","./icon.svg"];
 const LOGO_HOSTS = new Set(["icon.horse"]);
 
 self.addEventListener("install", (event) => {
@@ -19,30 +19,31 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(event.request.url);
   const isLocal = url.origin === self.location.origin;
-  const isBrandLogo = LOGO_HOSTS.has(url.hostname) && url.pathname.startsWith("/icon/");
+  const isExternalImage = !isLocal && event.request.destination === "image";
 
-  if (!isLocal && !isBrandLogo) return;
-
-  if (isBrandLogo) {
+  if (isExternalImage) {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE);
       const cached = await cache.match(event.request);
-      if (cached) return cached;
-
-      try {
-        const response = await fetch(event.request);
-        if (response.ok || response.type === "opaque") {
-          cache.put(event.request, response.clone()).catch(() => {});
-        }
-        return response;
-      } catch (error) {
-        const fallback = await cache.match(event.request);
-        if (fallback) return fallback;
-        throw error;
+      if (cached) {
+        event.waitUntil(
+          fetch(event.request).then((response) => {
+            if (response.ok || response.type === "opaque") return cache.put(event.request, response.clone());
+          }).catch(() => {})
+        );
+        return cached;
       }
+
+      const response = await fetch(event.request);
+      if (response.ok || response.type === "opaque") {
+        cache.put(event.request, response.clone()).catch(() => {});
+      }
+      return response;
     })());
     return;
   }
+
+  if (!isLocal) return;
 
   event.respondWith(
     fetch(event.request)
