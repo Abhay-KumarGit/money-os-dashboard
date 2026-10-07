@@ -385,9 +385,20 @@ function showLocked(message) {
 }
 
 function showApp() {
-  $("boot").classList.add("hidden");
+  const boot = $("boot");
   $("locked").classList.add("hidden");
   $("app").classList.remove("hidden");
+
+  if (!boot || window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
+    boot?.classList.add("hidden");
+    return;
+  }
+
+  boot.classList.add("boot-exit");
+  window.setTimeout(() => {
+    boot.classList.add("hidden");
+    boot.classList.remove("boot-exit");
+  }, 600);
 }
 
 async function loadSummary() {
