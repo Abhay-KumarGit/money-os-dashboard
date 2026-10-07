@@ -140,7 +140,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .app{max-width:1240px;margin:0 auto;padding:22px 22px 86px}
 .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
 .top-actions{display:flex;align-items:center;gap:10px}
-.privacy-toggle{display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.privacy-toggle{display:inline-flex;align-items:center;justify-content:center;width:42px;padding:0;gap:0;white-space:nowrap}
 .privacy-icon{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
 .privacy-toggle[aria-pressed="true"]{background:var(--accent-soft);border-color:rgba(104,166,255,.3);color:#dce8ff}
 .privacy-status{border:1px solid var(--border);background:var(--surface-2);border-radius:999px;padding:5px 8px;font-size:10px;font-weight:700;color:var(--muted);white-space:nowrap}
