@@ -1,0 +1,60 @@
+name: Reconcile household net worth
+
+on:
+  schedule:
+    - cron: "45 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: net-worth-ingestion
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    if: github.ref == 'refs/heads/main'
+    environment: money-os-ingestion
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install statement tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends qpdf poppler-utils
+
+      - name: Validate ingestion code
+        run: |
+          node --check scripts/net-worth-parsers.mjs
+          node --check scripts/net-worth-ingest.mjs
+          node --test tests/net-worth-parsers.test.mjs
+
+      - name: Reconcile financial statements
+        env:
+          MONEY_OS_INGEST_URL: https://epyixyfcwdpkauenljle.supabase.co/functions/v1/net-worth-ingest
+
+          # Existing Gmail OAuth repository/environment secrets. The worker accepts either GOOGLE_* or GMAIL_* naming.
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
+          GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
+          GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
+
+          # Statement passwords live only in the protected environment.
+          HDFC_STATEMENT_PASSWORD: ${{ secrets.HDFC_STATEMENT_PASSWORD }}
+          SBI_STATEMENT_PASSWORD: ${{ secrets.SBI_STATEMENT_PASSWORD }}
+          NPS_STATEMENT_PASSWORD: ${{ secrets.NPS_STATEMENT_PASSWORD }}
+          HDFC_CREDIT_CARD_STATEMENT: ${{ secrets.HDFC_CREDIT_CARD_STATEMENT }}
+          HDFC_CREDIT_CARD_STATEMENT_PASSWORD: ${{ secrets.HDFC_CREDIT_CARD_STATEMENT_PASSWORD }}
+        run: node scripts/net-worth-ingest.mjs
