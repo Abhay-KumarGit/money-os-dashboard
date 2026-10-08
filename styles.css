@@ -2870,3 +2870,100 @@ html[data-theme="light"] body::after{
   .net-worth-manual-head{display:block}
   .net-worth-manual-head small{margin:3px 0 0}
 }
+
+
+/* Clean production heritage-orbit assets v45
+   Background-only WebP artwork; no UI is baked into either theme asset. */
+body{
+  position:relative;
+  isolation:isolate;
+  background:var(--bg);
+}
+body::before{
+  content:"";
+  display:block;
+  position:fixed;
+  z-index:0;
+  inset:0 0 auto 0;
+  width:100%;
+  height:min(58vh,541px);
+  pointer-events:none;
+  background-image:url("./assets/heritage-orbit-dark.webp");
+  background-repeat:no-repeat;
+  background-position:center top;
+  background-size:cover;
+  opacity:1;
+  mix-blend-mode:normal;
+  -webkit-mask-image:none;
+  mask-image:none;
+}
+body::after{
+  display:none!important;
+}
+.app,.locked{
+  position:relative;
+  z-index:1;
+}
+
+/* Dedicated artwork tuned for the light palette; do not derive it from dark mode. */
+html[data-theme="light"] body{
+  background:var(--bg);
+}
+html[data-theme="light"] body::before{
+  background-image:url("./assets/heritage-orbit-light.webp");
+  opacity:1;
+  mix-blend-mode:normal;
+}
+
+/* Keep the approved fading-bronze selection independent from the artwork. */
+@media(min-width:901px){
+  .nav-rail .tabs button.active{
+    color:var(--text);
+    border-color:transparent;
+    background:linear-gradient(90deg,
+      rgba(211,160,95,.23) 0%,
+      rgba(211,160,95,.11) 38%,
+      rgba(211,160,95,.035) 72%,
+      transparent 100%);
+    box-shadow:none;
+  }
+  .nav-rail .tabs button.active::before{
+    left:0;
+    top:18%;
+    bottom:18%;
+    width:3px;
+    border-radius:3px;
+    background:linear-gradient(180deg,
+      transparent 0%,
+      #e4b474 18%,
+      #c88e4d 78%,
+      transparent 100%);
+    box-shadow:0 0 13px rgba(217,164,94,.24);
+  }
+  html[data-theme="light"] .nav-rail .tabs button.active{
+    color:#2f251c;
+    background:linear-gradient(90deg,
+      rgba(163,119,70,.16) 0%,
+      rgba(163,119,70,.075) 42%,
+      rgba(163,119,70,.018) 76%,
+      transparent 100%);
+  }
+}
+
+/* Crop the exact same composition responsively rather than switching artwork. */
+@media(max-width:1280px) and (min-width:781px){
+  body::before,
+  html[data-theme="light"] body::before{
+    height:min(55vh,500px);
+    background-size:auto 500px;
+    background-position:64% top;
+  }
+}
+@media(max-width:780px){
+  body::before,
+  html[data-theme="light"] body::before{
+    height:min(45vh,420px);
+    background-size:auto 420px;
+    background-position:68% top;
+  }
+}
