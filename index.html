@@ -208,6 +208,12 @@
               <div><span>Liabilities</span><strong id="netWorthLiabilities">—</strong></div>
               <div class="net-worth-total"><span>Estimated net worth</span><strong id="netWorthTotal">—</strong></div>
             </div>
+            <div class="net-worth-sources-head">
+              <div><strong>Linked sources</strong><small>Discovered from financial emails · only verified current balances count</small></div>
+              <span id="netWorthSourceCount" class="source-count">—</span>
+            </div>
+            <div id="netWorthSources" class="net-worth-source-list"></div>
+            <div class="net-worth-manual-head"><strong>Manual items</strong><small>Use this for values that cannot be verified automatically yet.</small></div>
             <form id="netWorthForm" class="net-worth-form">
               <input id="netWorthName" type="text" maxlength="80" placeholder="Name (e.g. EPF)" required>
               <select id="netWorthKind" aria-label="Asset or liability"><option value="asset">Asset</option><option value="liability">Liability</option></select>
@@ -455,6 +461,6 @@
   </dialog>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="app.js?v=41" defer></script>
+  <script src="app.js?v=44" defer></script>
 </body>
 </html>
