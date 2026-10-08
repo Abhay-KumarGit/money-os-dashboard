@@ -247,6 +247,7 @@ test("heritage orbit theme uses production assets and survives navigation", asyn
   await mockAuthenticatedApp(page);
   await page.goto("/");
   await expect(page.locator("#app")).toBeVisible();
+  await expect(page.locator("#boot")).toHaveClass(/hidden/);
 
   await page.screenshot({ path: testInfo.outputPath("heritage-dark.png"), fullPage: false });
 
