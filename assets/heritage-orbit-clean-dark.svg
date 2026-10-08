@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 700" preserveAspectRatio="xMidYMid slice">
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+    <stop stop-color="#07111a"/><stop offset="1" stop-color="#09121c"/>
+  </linearGradient>
+  <radialGradient id="halo" cx="82%" cy="0%" r="52%">
+    <stop stop-color="#c68d4f" stop-opacity=".12"/><stop offset=".55" stop-color="#23425b" stop-opacity=".08"/><stop offset="1" stop-color="#08121b" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="node">
+    <stop stop-color="#f2c98d" stop-opacity=".95"/><stop offset=".25" stop-color="#d79c58" stop-opacity=".42"/><stop offset="1" stop-color="#d79c58" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="bronze" x1="0" y1="0" x2="1" y2="0">
+    <stop stop-color="#7d5937" stop-opacity=".22"/><stop offset=".5" stop-color="#c18a4d" stop-opacity=".68"/><stop offset="1" stop-color="#e2b171" stop-opacity=".34"/>
+  </linearGradient>
+  <pattern id="hex" width="34" height="29.45" patternUnits="userSpaceOnUse">
+    <path d="M17 1 32 8.4v12.6L17 28.45 2 21V8.4Z" fill="none" stroke="#bd8750" stroke-opacity=".34" stroke-width=".8"/>
+    <circle cx="17" cy="14.7" r="4.1" fill="none" stroke="#6f8598" stroke-opacity=".2" stroke-width=".7"/>
+  </pattern>
+  <pattern id="diamond" width="26" height="26" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+    <path d="M0 0H26V26H0Z" fill="none" stroke="#c48e55" stroke-opacity=".22" stroke-width=".7"/>
+  </pattern>
+  <mask id="jaliA"><rect width="1920" height="700" fill="#000"/><circle cx="1640" cy="-70" r="432" fill="#fff"/><circle cx="1640" cy="-70" r="350" fill="#000"/></mask>
+  <mask id="jaliB"><rect width="1920" height="700" fill="#000"/><circle cx="1640" cy="-70" r="334" fill="#fff"/><circle cx="1640" cy="-70" r="273" fill="#000"/></mask>
+  <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#fff"/><stop offset=".67" stop-color="#fff"/><stop offset="1" stop-color="#000"/>
+  </linearGradient>
+  <mask id="fadeMask"><rect width="1920" height="700" fill="url(#fade)"/></mask>
+</defs>
+<rect width="1920" height="700" fill="url(#bg)"/>
+<rect width="1920" height="700" fill="url(#halo)"/>
+<g mask="url(#fadeMask)">
+  <g fill="none" stroke-linecap="round">
+    <path d="M-110 148C225 18 500 36 760 150s520 250 1025 70" stroke="url(#bronze)" stroke-width="1.2"/>
+    <path d="M-150 238C220 90 550 108 850 210s520 175 980 68" stroke="#7890a5" stroke-opacity=".18" stroke-width="1"/>
+    <path d="M-95 325C290 145 590 145 885 245s505 150 925 70" stroke="#b57f49" stroke-opacity=".22" stroke-width="1"/>
+    <path d="M135 58C420 225 690 265 950 178s525-130 855 40" stroke="#b9834b" stroke-opacity=".2" stroke-width=".9"/>
+    <path d="M265 404C555 175 815 160 1040 235s420 205 800 115" stroke="#6e8295" stroke-opacity=".16" stroke-width="1"/>
+    <path d="M505 -15C720 105 900 126 1110 72s400-58 690 70" stroke="#a87543" stroke-opacity=".16" stroke-width=".8"/>
+  </g>
+
+  <circle cx="1640" cy="-70" r="520" fill="none" stroke="#b9824b" stroke-opacity=".18" stroke-width="2"/>
+  <circle cx="1640" cy="-70" r="486" fill="none" stroke="url(#bronze)" stroke-width="2.2"/>
+  <circle cx="1640" cy="-70" r="452" fill="none" stroke="#70869a" stroke-opacity=".25" stroke-width="1.1"/>
+  <circle cx="1640" cy="-70" r="426" fill="none" stroke="#d0a062" stroke-opacity=".34" stroke-width="1.35" stroke-dasharray="2 8 13 8"/>
+  <circle cx="1640" cy="-70" r="392" fill="none" stroke="#7a8ea0" stroke-opacity=".18" stroke-width="1"/>
+  <circle cx="1640" cy="-70" r="365" fill="none" stroke="#c58d50" stroke-opacity=".36" stroke-width="1.7"/>
+  <circle cx="1640" cy="-70" r="338" fill="none" stroke="#8f653e" stroke-opacity=".32" stroke-width="4.2"/>
+  <circle cx="1640" cy="-70" r="312" fill="none" stroke="#7d90a2" stroke-opacity=".18" stroke-width="1"/>
+  <circle cx="1640" cy="-70" r="284" fill="none" stroke="#dcaa68" stroke-opacity=".34" stroke-width="2"/>
+  <circle cx="1640" cy="-70" r="258" fill="none" stroke="#72879a" stroke-opacity=".18" stroke-width="1"/>
+  <circle cx="1640" cy="-70" r="230" fill="none" stroke="#bf874c" stroke-opacity=".28" stroke-width="1.4"/>
+  <circle cx="1640" cy="-70" r="198" fill="none" stroke="#74899b" stroke-opacity=".15" stroke-width="1"/>
+  <circle cx="1640" cy="-70" r="166" fill="none" stroke="#bd8449" stroke-opacity=".25" stroke-width="1.5"/>
+
+  <rect width="1920" height="700" fill="url(#hex)" mask="url(#jaliA)"/>
+  <rect width="1920" height="700" fill="url(#diamond)" mask="url(#jaliB)"/>
+
+  <g fill="none" stroke="#b78049" stroke-opacity=".12" stroke-width=".8">
+    <path d="M1640-70 1860-485"/><path d="M1640-70 2010-285"/><path d="M1640-70 2110-35"/><path d="M1640-70 2000 295"/><path d="M1640-70 1700 455"/><path d="M1640-70 1385 385"/><path d="M1640-70 1205 182"/><path d="M1640-70 1148-132"/>
+  </g>
+
+  <g fill="#e3b06e" opacity=".58">
+    <circle cx="235" cy="58" r="2"/><circle cx="470" cy="108" r="2.4"/><circle cx="730" cy="155" r="2.1"/>
+    <circle cx="950" cy="130" r="2.6"/><circle cx="1160" cy="210" r="2.1"/><circle cx="1320" cy="145" r="2.3"/>
+    <circle cx="1460" cy="235" r="2.6"/><circle cx="1745" cy="250" r="2.2"/><circle cx="610" cy="55" r="1.6"/>
+  </g>
+  <g opacity=".5">
+    <circle cx="470" cy="108" r="18" fill="url(#node)"/><circle cx="950" cy="130" r="20" fill="url(#node)"/>
+    <circle cx="1320" cy="145" r="18" fill="url(#node)"/><circle cx="1460" cy="235" r="22" fill="url(#node)"/>
+  </g>
+
+  <g fill="none">
+    <circle cx="360" cy="-105" r="250" stroke="#71869a" stroke-opacity=".09" stroke-width="1"/>
+    <circle cx="360" cy="-105" r="180" stroke="#9d7044" stroke-opacity=".11" stroke-width=".9"/>
+    <circle cx="360" cy="-105" r="118" stroke="#74889a" stroke-opacity=".07" stroke-width=".8"/>
+  </g>
+</g>
+</svg>
