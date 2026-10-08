@@ -2622,3 +2622,84 @@ summary:focus-visible{
   .target-form{grid-template-columns:1fr}
   .target-form label:last-of-type{grid-column:auto}
 }
+
+
+/* Agreed ornate orbit/jali pattern v42
+   Replaces the generic ring/grid approximation with the selected top-right composition. */
+body::before{
+  content:"";
+  display:block;
+  position:fixed;
+  z-index:-1;
+  inset:0 0 auto 0;
+  width:100%;
+  height:min(58vh,680px);
+  pointer-events:none;
+  opacity:1;
+  background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201800%20720%22%20preserveAspectRatio%3D%22xMidYMid%20slice%22%3E%0A%3Cdefs%3E%0A%3ClinearGradient%20id%3D%22b%22%20x1%3D%220%22%20x2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%238f6339%22%20stop-opacity%3D%22.16%22%2F%3E%3Cstop%20offset%3D%22.55%22%20stop-color%3D%22%23c89658%22%20stop-opacity%3D%22.72%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23e2b36f%22%20stop-opacity%3D%22.36%22%2F%3E%3C%2FlinearGradient%3E%0A%3Cpattern%20id%3D%22j%22%20width%3D%2238%22%20height%3D%2234%22%20patternUnits%3D%22userSpaceOnUse%22%3E%3Cpath%20d%3D%22M19%201L36%209.5V24.5L19%2033L2%2024.5V9.5Z%22%20fill%3D%22none%22%20stroke%3D%22%23bb8950%22%20stroke-opacity%3D%22.24%22%20stroke-width%3D%221%22%2F%3E%3Ccircle%20cx%3D%2219%22%20cy%3D%2217%22%20r%3D%223.2%22%20fill%3D%22none%22%20stroke%3D%22%2374879a%22%20stroke-opacity%3D%22.16%22%20stroke-width%3D%22.8%22%2F%3E%3C%2Fpattern%3E%0A%3Cpattern%20id%3D%22d%22%20width%3D%2228%22%20height%3D%2228%22%20patternUnits%3D%22userSpaceOnUse%22%20patternTransform%3D%22rotate(45)%22%3E%3Cpath%20d%3D%22M0%200H28V28H0Z%22%20fill%3D%22none%22%20stroke%3D%22%23a67a49%22%20stroke-opacity%3D%22.13%22%20stroke-width%3D%22.8%22%2F%3E%3C%2Fpattern%3E%0A%3Cmask%20id%3D%22r1%22%3E%3Crect%20width%3D%221800%22%20height%3D%22720%22%20fill%3D%22%23000%22%2F%3E%3Ccircle%20cx%3D%221570%22%20cy%3D%2224%22%20r%3D%22384%22%20fill%3D%22%23fff%22%2F%3E%3Ccircle%20cx%3D%221570%22%20cy%3D%2224%22%20r%3D%22292%22%20fill%3D%22%23000%22%2F%3E%3C%2Fmask%3E%0A%3Cmask%20id%3D%22r2%22%3E%3Crect%20width%3D%221800%22%20height%3D%22720%22%20fill%3D%22%23000%22%2F%3E%3Ccircle%20cx%3D%221570%22%20cy%3D%2224%22%20r%3D%22276%22%20fill%3D%22%23fff%22%2F%3E%3Ccircle%20cx%3D%221570%22%20cy%3D%2224%22%20r%3D%22206%22%20fill%3D%22%23000%22%2F%3E%3C%2Fmask%3E%0A%3ClinearGradient%20id%3D%22f%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fff%22%2F%3E%3Cstop%20offset%3D%22.68%22%20stop-color%3D%22%23fff%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23000%22%2F%3E%3C%2FlinearGradient%3E%0A%3Cmask%20id%3D%22fm%22%3E%3Crect%20width%3D%221800%22%20height%3D%22720%22%20fill%3D%22url(%23f)%22%2F%3E%3C%2Fmask%3E%0A%3C%2Fdefs%3E%0A%3Cg%20mask%3D%22url(%23fm)%22%20fill%3D%22none%22%3E%0A%3Ccircle%20cx%3D%22350%22%20cy%3D%22-110%22%20r%3D%22235%22%20stroke%3D%22%2373879a%22%20stroke-opacity%3D%22.08%22%20stroke-width%3D%221.2%22%2F%3E%0A%3Ccircle%20cx%3D%22350%22%20cy%3D%22-110%22%20r%3D%22165%22%20stroke%3D%22%23a67a49%22%20stroke-opacity%3D%22.08%22%20stroke-width%3D%221%22%2F%3E%0A%3Cpath%20d%3D%22M-80%20190C230%2030%20520%2052%20780%20180S1210%20330%201600%20180%22%20stroke%3D%22url(%23b)%22%20stroke-opacity%3D%22.48%22%20stroke-width%3D%221.2%22%2F%3E%0A%3Cpath%20d%3D%22M-120%20274C250%20118%20560%20130%20840%20235S1290%20360%201660%20250%22%20stroke%3D%22%238194a7%22%20stroke-opacity%3D%22.17%22%20stroke-width%3D%221%22%2F%3E%0A%3Cpath%20d%3D%22M110%20350C360%20160%20590%20160%20820%20250S1260%20400%201740%20316%22%20stroke%3D%22%23bd8a50%22%20stroke-opacity%3D%22.20%22%20stroke-width%3D%221%22%2F%3E%0A%3Cpath%20d%3D%22M240%2070C500%20220%20650%20250%20920%20170S1310%2060%201740%20210%22%20stroke%3D%22%23a87542%22%20stroke-opacity%3D%22.18%22%20stroke-width%3D%22.9%22%2F%3E%0A%3Crect%20width%3D%221800%22%20height%3D%22720%22%20fill%3D%22url(%23j)%22%20mask%3D%22url(%23r1)%22%20opacity%3D%22.96%22%2F%3E%0A%3Crect%20width%3D%221800%22%20height%3D%22720%22%20fill%3D%22url(%23d)%22%20mask%3D%22url(%23r2)%22%20opacity%3D%22.78%22%2F%3E%0A%3Ccircle%20cx%3D%221570%22%20cy%3D%2224%22%20r%3D%22432%22%20stroke%3D%22%23b8834b%22%20stroke-opacity%3D%22.20%22%20stroke-width%3D%222%22%2F%3E%0A%3Ccircle%20cx%3D%221570%22%20cy%3D%2224%22%20r%3D%22397%22%20stroke%3D%22url(%23b)%22%20stroke-width%3D%222.2%22%2F%3E%0A%3Ccircle%20cx%3D%221570%22%20cy%3D%2224%22%20r%3D%22370%22%20stroke%3D%22%236f8295%22%20stroke-opacity%3D%22.22%22%20stroke-width%3D%221.3%22%2F%3E%0A%3Ccircle%20cx%3D%221570%22%20cy%3D%2224%22%20r%3D%22326%22%20stroke%3D%22%23c18d4f%22%20stroke-opacity%3D%22.44%22%20stroke-width%3D%221.4%22%20stroke-dasharray%3D%222%208%2012%208%22%2F%3E%0A%3Ccircle%20cx%3D%221570%22%20cy%3D%2224%22%20r%3D%22286%22%20stroke%3D%22%237b8fa3%22%20stroke-opacity%3D%22.22%22%20stroke-width%3D%221.1%22%2F%3E%0A%3Ccircle%20cx%3D%221570%22%20cy%3D%2224%22%20r%3D%22246%22%20stroke%3D%22%23d2a05e%22%20stroke-opacity%3D%22.38%22%20stroke-width%3D%222%22%2F%3E%0A%3Ccircle%20cx%3D%221570%22%20cy%3D%2224%22%20r%3D%22214%22%20stroke%3D%22%239b6f42%22%20stroke-opacity%3D%22.28%22%20stroke-width%3D%221%22%20stroke-dasharray%3D%221%207%22%2F%3E%0A%3Ccircle%20cx%3D%221570%22%20cy%3D%2224%22%20r%3D%22176%22%20stroke%3D%22%2375899e%22%20stroke-opacity%3D%22.18%22%20stroke-width%3D%221.2%22%2F%3E%0A%3Ccircle%20cx%3D%221570%22%20cy%3D%2224%22%20r%3D%22142%22%20stroke%3D%22%23c89255%22%20stroke-opacity%3D%22.27%22%20stroke-width%3D%221.5%22%2F%3E%0A%3Cg%20stroke%3D%22%23bd8950%22%20stroke-opacity%3D%22.14%22%20stroke-width%3D%22.9%22%3E%0A%3Cpath%20d%3D%22M1570%2024L1757%20-365%22%2F%3E%3Cpath%20d%3D%22M1570%2024L1904%20-180%22%2F%3E%3Cpath%20d%3D%22M1570%2024L1982%2056%22%2F%3E%3Cpath%20d%3D%22M1570%2024L1870%20314%22%2F%3E%3Cpath%20d%3D%22M1570%2024L1620%20455%22%2F%3E%3Cpath%20d%3D%22M1570%2024L1354%20404%22%2F%3E%3Cpath%20d%3D%22M1570%2024L1192%20237%22%2F%3E%3Cpath%20d%3D%22M1570%2024L1138%20-31%22%2F%3E%0A%3C%2Fg%3E%0A%3Cpath%20d%3D%22M740%20410C960%20180%201190%2095%201440%20142C1645%20180%201730%20312%201840%20420%22%20stroke%3D%22%23c89455%22%20stroke-opacity%3D%22.27%22%20stroke-width%3D%221.2%22%2F%3E%0A%3Cpath%20d%3D%22M620%20120C900%20290%201110%20318%201370%20228C1525%20175%201645%20150%201830%20240%22%20stroke%3D%22%2374899d%22%20stroke-opacity%3D%22.17%22%20stroke-width%3D%221%22%2F%3E%0A%3Cpath%20d%3D%22M580%20305C820%2090%201100%2025%201390%20110C1570%20162%201680%20250%201800%20370%22%20stroke%3D%22%23b37d47%22%20stroke-opacity%3D%22.18%22%20stroke-width%3D%22.9%22%2F%3E%0A%3Cg%20fill%3D%22%23e1ad68%22%3E%3Ccircle%20cx%3D%22602%22%20cy%3D%22142%22%20r%3D%222.2%22%20opacity%3D%22.7%22%2F%3E%3Ccircle%20cx%3D%22810%22%20cy%3D%22204%22%20r%3D%222.7%22%20opacity%3D%22.6%22%2F%3E%3Ccircle%20cx%3D%221010%22%20cy%3D%22164%22%20r%3D%222.1%22%20opacity%3D%22.65%22%2F%3E%3Ccircle%20cx%3D%221195%22%20cy%3D%22236%22%20r%3D%223%22%20opacity%3D%22.75%22%2F%3E%3Ccircle%20cx%3D%221378%22%20cy%3D%22148%22%20r%3D%222.6%22%20opacity%3D%22.75%22%2F%3E%3Ccircle%20cx%3D%221508%22%20cy%3D%22246%22%20r%3D%222.8%22%20opacity%3D%22.68%22%2F%3E%3Ccircle%20cx%3D%221702%22%20cy%3D%22274%22%20r%3D%223.1%22%20opacity%3D%22.66%22%2F%3E%3C%2Fg%3E%0A%3C%2Fg%3E%3C%2Fsvg%3E");
+  background-repeat:no-repeat;
+  background-position:center top;
+  background-size:100% 100%;
+  -webkit-mask-image:none;
+  mask-image:none;
+}
+body::after{display:none!important}
+
+/* Keep the artwork visible but quiet in light mode instead of washing it out. */
+html[data-theme="light"] body::before{
+  opacity:.62;
+  background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201800%20720%22%20preserveAspectRatio%3D%22xMidYMid%20slice%22%3E%0A%3Cdefs%3E%0A%3ClinearGradient%20id%3D%22b%22%20x1%3D%220%22%20x2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23876f56%22%20stop-opacity%3D%22.16%22%2F%3E%3Cstop%20offset%3D%22.55%22%20stop-color%3D%22%239b744b%22%20stop-opacity%3D%22.72%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23b48755%22%20stop-opacity%3D%22.36%22%2F%3E%3C%2FlinearGradient%3E%0A%3Cpattern%20id%3D%22j%22%20width%3D%2238%22%20height%3D%2234%22%20patternUnits%3D%22userSpaceOnUse%22%3E%3Cpath%20d%3D%22M19%201L36%209.5V24.5L19%2033L2%2024.5V9.5Z%22%20fill%3D%22none%22%20stroke%3D%22%23927252%22%20stroke-opacity%3D%22.24%22%20stroke-width%3D%221%22%2F%3E%3Ccircle%20cx%3D%2219%22%20cy%3D%2217%22%20r%3D%223.2%22%20fill%3D%22none%22%20stroke%3D%22%238693a0%22%20stroke-opacity%3D%22.16%22%20stroke-width%3D%22.8%22%2F%3E%3C%2Fpattern%3E%0A%3Cpattern%20id%3D%22d%22%20width%3D%2228%22%20height%3D%2228%22%20patternUnits%3D%22userSpaceOnUse%22%20patternTransform%3D%22rotate(45)%22%3E%3Cpath%20d%3D%22M0%200H28V28H0Z%22%20fill%3D%22none%22%20stroke%3D%22%238e7255%22%20stroke-opacity%3D%22.13%22%20stroke-width%3D%22.8%22%2F%3E%3C%2Fpattern%3E%0A%3Cmask%20id%3D%22r1%22%3E%3Crect%20width%3D%221800%22%20height%3D%22720%22%20fill%3D%22%23000%22%2F%3E%3Ccircle%20cx%3D%221570%22%20cy%3D%2224%22%20r%3D%22384%22%20fill%3D%22%23fff%22%2F%3E%3Ccircle%20cx%3D%221570%22%20cy%3D%2224%22%20r%3D%22292%22%20fill%3D%22%23000%22%2F%3E%3C%2Fmask%3E%0A%3Cmask%20id%3D%22r2%22%3E%3Crect%20width%3D%221800%22%20height%3D%22720%22%20fill%3D%22%23000%22%2F%3E%3Ccircle%20cx%3D%221570%22%20cy%3D%2224%22%20r%3D%22276%22%20fill%3D%22%23fff%22%2F%3E%3Ccircle%20cx%3D%221570%22%20cy%3D%2224%22%20r%3D%22206%22%20fill%3D%22%23000%22%2F%3E%3C%2Fmask%3E%0A%3ClinearGradient%20id%3D%22f%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fff%22%2F%3E%3Cstop%20offset%3D%22.68%22%20stop-color%3D%22%23fff%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23000%22%2F%3E%3C%2FlinearGradient%3E%0A%3Cmask%20id%3D%22fm%22%3E%3Crect%20width%3D%221800%22%20height%3D%22720%22%20fill%3D%22url(%23f)%22%2F%3E%3C%2Fmask%3E%0A%3C%2Fdefs%3E%0A%3Cg%20mask%3D%22url(%23fm)%22%20fill%3D%22none%22%3E%0A%3Ccircle%20cx%3D%22350%22%20cy%3D%22-110%22%20r%3D%22235%22%20stroke%3D%22%238793a0%22%20stroke-opacity%3D%22.08%22%20stroke-width%3D%221.2%22%2F%3E%0A%3Ccircle%20cx%3D%22350%22%20cy%3D%22-110%22%20r%3D%22165%22%20stroke%3D%22%238e7255%22%20stroke-opacity%3D%22.08%22%20stroke-width%3D%221%22%2F%3E%0A%3Cpath%20d%3D%22M-80%20190C230%2030%20520%2052%20780%20180S1210%20330%201600%20180%22%20stroke%3D%22url(%23b)%22%20stroke-opacity%3D%22.48%22%20stroke-width%3D%221.2%22%2F%3E%0A%3Cpath%20d%3D%22M-120%20274C250%20118%20560%20130%20840%20235S1290%20360%201660%20250%22%20stroke%3D%22%237f8c9c%22%20stroke-opacity%3D%22.17%22%20stroke-width%3D%221%22%2F%3E%0A%3Cpath%20d%3D%22M110%20350C360%20160%20590%20160%20820%20250S1260%20400%201740%20316%22%20stroke%3D%22%2396734f%22%20stroke-opacity%3D%22.20%22%20stroke-width%3D%221%22%2F%3E%0A%3Cpath%20d%3D%22M240%2070C500%20220%20650%20250%20920%20170S1310%2060%201740%20210%22%20stroke%3D%22%2384684e%22%20stroke-opacity%3D%22.18%22%20stroke-width%3D%22.9%22%2F%3E%0A%3Crect%20width%3D%221800%22%20height%3D%22720%22%20fill%3D%22url(%23j)%22%20mask%3D%22url(%23r1)%22%20opacity%3D%22.96%22%2F%3E%0A%3Crect%20width%3D%221800%22%20height%3D%22720%22%20fill%3D%22url(%23d)%22%20mask%3D%22url(%23r2)%22%20opacity%3D%22.78%22%2F%3E%0A%3Ccircle%20cx%3D%221570%22%20cy%3D%2224%22%20r%3D%22432%22%20stroke%3D%22%238e6f50%22%20stroke-opacity%3D%22.20%22%20stroke-width%3D%222%22%2F%3E%0A%3Ccircle%20cx%3D%221570%22%20cy%3D%2224%22%20r%3D%22397%22%20stroke%3D%22url(%23b)%22%20stroke-width%3D%222.2%22%2F%3E%0A%3Ccircle%20cx%3D%221570%22%20cy%3D%2224%22%20r%3D%22370%22%20stroke%3D%22%2384909d%22%20stroke-opacity%3D%22.22%22%20stroke-width%3D%221.3%22%2F%3E%0A%3Ccircle%20cx%3D%221570%22%20cy%3D%2224%22%20r%3D%22326%22%20stroke%3D%22%23916e4c%22%20stroke-opacity%3D%22.44%22%20stroke-width%3D%221.4%22%20stroke-dasharray%3D%222%208%2012%208%22%2F%3E%0A%3Ccircle%20cx%3D%221570%22%20cy%3D%2224%22%20r%3D%22286%22%20stroke%3D%22%238793a0%22%20stroke-opacity%3D%22.22%22%20stroke-width%3D%221.1%22%2F%3E%0A%3Ccircle%20cx%3D%221570%22%20cy%3D%2224%22%20r%3D%22246%22%20stroke%3D%22%239f7952%22%20stroke-opacity%3D%22.38%22%20stroke-width%3D%222%22%2F%3E%0A%3Ccircle%20cx%3D%221570%22%20cy%3D%2224%22%20r%3D%22214%22%20stroke%3D%22%237f654d%22%20stroke-opacity%3D%22.28%22%20stroke-width%3D%221%22%20stroke-dasharray%3D%221%207%22%2F%3E%0A%3Ccircle%20cx%3D%221570%22%20cy%3D%2224%22%20r%3D%22176%22%20stroke%3D%22%238995a2%22%20stroke-opacity%3D%22.18%22%20stroke-width%3D%221.2%22%2F%3E%0A%3Ccircle%20cx%3D%221570%22%20cy%3D%2224%22%20r%3D%22142%22%20stroke%3D%22%2396734f%22%20stroke-opacity%3D%22.27%22%20stroke-width%3D%221.5%22%2F%3E%0A%3Cg%20stroke%3D%22%2395724f%22%20stroke-opacity%3D%22.14%22%20stroke-width%3D%22.9%22%3E%0A%3Cpath%20d%3D%22M1570%2024L1757%20-365%22%2F%3E%3Cpath%20d%3D%22M1570%2024L1904%20-180%22%2F%3E%3Cpath%20d%3D%22M1570%2024L1982%2056%22%2F%3E%3Cpath%20d%3D%22M1570%2024L1870%20314%22%2F%3E%3Cpath%20d%3D%22M1570%2024L1620%20455%22%2F%3E%3Cpath%20d%3D%22M1570%2024L1354%20404%22%2F%3E%3Cpath%20d%3D%22M1570%2024L1192%20237%22%2F%3E%3Cpath%20d%3D%22M1570%2024L1138%20-31%22%2F%3E%0A%3C%2Fg%3E%0A%3Cpath%20d%3D%22M740%20410C960%20180%201190%2095%201440%20142C1645%20180%201730%20312%201840%20420%22%20stroke%3D%22%2396734f%22%20stroke-opacity%3D%22.27%22%20stroke-width%3D%221.2%22%2F%3E%0A%3Cpath%20d%3D%22M620%20120C900%20290%201110%20318%201370%20228C1525%20175%201645%20150%201830%20240%22%20stroke%3D%22%238794a1%22%20stroke-opacity%3D%22.17%22%20stroke-width%3D%221%22%2F%3E%0A%3Cpath%20d%3D%22M580%20305C820%2090%201100%2025%201390%20110C1570%20162%201680%20250%201800%20370%22%20stroke%3D%22%238d6a4d%22%20stroke-opacity%3D%22.18%22%20stroke-width%3D%22.9%22%2F%3E%0A%3Cg%20fill%3D%22%239b7958%22%3E%3Ccircle%20cx%3D%22602%22%20cy%3D%22142%22%20r%3D%222.2%22%20opacity%3D%22.7%22%2F%3E%3Ccircle%20cx%3D%22810%22%20cy%3D%22204%22%20r%3D%222.7%22%20opacity%3D%22.6%22%2F%3E%3Ccircle%20cx%3D%221010%22%20cy%3D%22164%22%20r%3D%222.1%22%20opacity%3D%22.65%22%2F%3E%3Ccircle%20cx%3D%221195%22%20cy%3D%22236%22%20r%3D%223%22%20opacity%3D%22.75%22%2F%3E%3Ccircle%20cx%3D%221378%22%20cy%3D%22148%22%20r%3D%222.6%22%20opacity%3D%22.75%22%2F%3E%3Ccircle%20cx%3D%221508%22%20cy%3D%22246%22%20r%3D%222.8%22%20opacity%3D%22.68%22%2F%3E%3Ccircle%20cx%3D%221702%22%20cy%3D%22274%22%20r%3D%223.1%22%20opacity%3D%22.66%22%2F%3E%3C%2Fg%3E%0A%3C%2Fg%3E%3C%2Fsvg%3E");
+  background-repeat:no-repeat;
+  background-position:center top;
+  background-size:100% 100%;
+  mix-blend-mode:multiply;
+}
+
+/* Match the approved fading-bronze side selection; no gold outline box. */
+@media(min-width:901px){
+  .nav-rail .tabs button.active{
+    border:0;
+    color:var(--text);
+    background:
+      linear-gradient(90deg,
+        rgba(211,160,95,.22) 0%,
+        rgba(211,160,95,.105) 42%,
+        rgba(211,160,95,.035) 72%,
+        transparent 100%);
+    box-shadow:none;
+  }
+  .nav-rail .tabs button.active::before{
+    left:0;
+    width:3px;
+    background:linear-gradient(180deg,transparent,#e1ae6c 18%,#c98f4f 76%,transparent);
+    box-shadow:0 0 12px rgba(211,160,95,.22);
+  }
+  html[data-theme="light"] .nav-rail .tabs button.active{
+    color:#30261d;
+    background:
+      linear-gradient(90deg,
+        rgba(160,116,67,.15) 0%,
+        rgba(160,116,67,.07) 46%,
+        rgba(160,116,67,.018) 76%,
+        transparent 100%);
+  }
+}
+
+/* Wide tablet: preserve the off-centre right orbit rather than squeezing it into the middle. */
+@media(max-width:1280px) and (min-width:781px){
+  body::before,
+  html[data-theme="light"] body::before{
+    background-size:1500px 590px;
+    background-position:70% top;
+  }
+}
+
+/* Mobile gets the same artwork cropped from the right, not a different generic pattern. */
+@media(max-width:780px){
+  body::before,
+  html[data-theme="light"] body::before{
+    height:min(46vh,440px);
+    background-size:1120px 448px;
+    background-position:72% top;
+  }
+}
