@@ -41,3 +41,25 @@ jobs:
             echo "Potential private credential found"
             exit 1
           fi
+      - name: Install Playwright
+        run: |
+          npm install
+          npx playwright install --with-deps chromium
+      - name: Run Playwright UI verification
+        run: |
+          python3 -m http.server 4173 >/tmp/money-os-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID || true' EXIT
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
+            sleep 1
+          done
+          npm test
+      - name: Upload Playwright verification screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-verification
+          path: test-results/
+          if-no-files-found: warn
+          retention-days: 7
