@@ -126,7 +126,7 @@ export function parseBankAccountBalances(text) {
     const start = Math.max(0, i - 5);
     let end = Math.min(lines.length, i + 25);
     for (let j = i + 1; j < end; j++) {
-      if (/(?:account|a\\/c).{0,20}(?:no|number|#)/i.test(lines[j])) {
+      if (/(?:account|a\/c).{0,20}(?:no|number|#)/i.test(lines[j])) {
         end = j;
         break;
       }
