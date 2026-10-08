@@ -1,5 +1,5 @@
-const CACHE = "money-os-v42";
-const ASSETS = ["./","./index.html","./app.js?v=41","./styles.css?v=42","./manifest.webmanifest","./icon.svg"];
+const CACHE = "money-os-v43";
+const ASSETS = ["./","./index.html","./app.js?v=41","./styles.css?v=43","./manifest.webmanifest","./icon.svg","./assets/heritage-orbit-dark.svg","./assets/heritage-orbit-light.svg"];
 const LOGO_HOSTS = new Set(["icon.horse"]);
 
 self.addEventListener("install", (event) => {
