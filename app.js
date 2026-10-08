@@ -786,7 +786,9 @@ function renderNetWorth() {
   }
   if (sourceList) {
     sourceList.innerHTML = sources.length ? sources.map((source) => {
-      const status = statusLabels[source.status] || "Review";
+      const status = source.status === "current_verified" && !source.counted
+        ? "Verified source"
+        : (statusLabels[source.status] || "Review");
       const amount = source.observed_amount === null || source.observed_amount === undefined
         ? ""
         : '<span class="net-worth-source-amount">' + escapeHtml(money(source.observed_amount)) + '</span>';
