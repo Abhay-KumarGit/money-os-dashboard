@@ -1,12 +1,6 @@
 name: Reconcile household net worth
 
 on:
-  push:
-    branches: ["main"]
-    paths:
-      - ".github/workflows/net-worth-ingestion.yml"
-      - "scripts/net-worth-*.mjs"
-      - "tests/net-worth-parsers.test.mjs"
   schedule:
     - cron: "45 3 * * *"
   workflow_dispatch:
@@ -21,7 +15,7 @@ concurrency:
 
 jobs:
   reconcile:
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main'
     environment: money-os-ingestion
     runs-on: ubuntu-latest
     timeout-minutes: 12
