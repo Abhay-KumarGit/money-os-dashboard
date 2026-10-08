@@ -141,6 +141,34 @@ let settings = {
       evidence_date: "2026-09-30",
       maturity_date: null,
       evidence_note: "Statement parsed into account-level sources; this envelope is not counted separately."
+    },
+    {
+      source_key: "epf:epfo:member:1234",
+      name: "EPF provident fund",
+      kind: "asset",
+      category: "epf",
+      provider: "EPFO",
+      masked_identifier: "Member ••1234",
+      status: "current_verified",
+      observed_amount: 123456,
+      counted: true,
+      evidence_date: "2026-10-08",
+      maturity_date: null,
+      evidence_note: "Verified from consecutive EPFO passbooks."
+    },
+    {
+      source_key: "epf:epfo:eps:member:1234",
+      name: "EPS pension record",
+      kind: "asset",
+      category: "epf",
+      provider: "EPFO",
+      masked_identifier: "Member ••1234",
+      status: "current_verified",
+      observed_amount: 34567,
+      counted: false,
+      evidence_date: "2026-10-08",
+      maturity_date: null,
+      evidence_note: "Verified pension record shown separately and excluded from net worth."
     }
   ]
 };
@@ -211,11 +239,15 @@ test("authenticated portfolio intelligence and interactions work", async ({ page
   await expect(page.locator("#rebalanceSuggestion")).toContainText("Contribution-first suggestion");
 
   await page.locator("#netWorthForm").evaluate(form => form.closest("details").open = true);
-  await expect(page.locator("#netWorthSourceCount")).toHaveText("3 found · 0 counted");
+  await expect(page.locator("#netWorthSourceCount")).toHaveText("5 found · 1 counted");
   await expect(page.locator("#netWorthSources")).toContainText("NPS Tier I");
   await expect(page.locator("#netWorthSources")).toContainText("Needs balance");
   await expect(page.locator("#netWorthSources")).toContainText("Matured");
   await expect(page.locator("#netWorthSources")).toContainText("Verified source");
+  await expect(page.locator("#netWorthSources")).toContainText("EPF provident fund");
+  await expect(page.locator("#netWorthSources")).toContainText("EPS pension record");
+  await page.locator("#privacyToggle").click();
+  await expect(page.locator("#netWorthAssets")).toContainText("1,23,456");
   await page.locator("#netWorthName").fill("EPF");
   await page.locator("#netWorthAmount").fill("250000");
   await page.locator("#netWorthForm").dispatchEvent("submit");
