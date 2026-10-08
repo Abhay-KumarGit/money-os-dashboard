@@ -171,7 +171,7 @@ async function attachmentBytes(accessToken, messageId, attachmentId) {
   return b64urlBytes(payload.data);
 }
 
-function run(command, args) {
+function runCommand(command, args) {
   return spawnSync(command, args, { encoding: "utf8", maxBuffer: 16 * 1024 * 1024 });
 }
 
@@ -184,13 +184,13 @@ async function extractPdfText(accessToken, message, attachment, password) {
   try {
     fs.writeFileSync(input, await attachmentBytes(accessToken, message.id, attachment.attachmentId), { mode: 0o600 });
 
-    let result = run("pdftotext", ["-layout", input, output]);
+    let result = runCommand("pdftotext", ["-layout", input, output]);
     if (result.status !== 0) {
       if (!password) return { text: null, error: "password_required_or_pdf_unreadable" };
       fs.writeFileSync(passFile, password, { mode: 0o600 });
-      result = run("qpdf", [`--password-file=${passFile}`, "--decrypt", input, plain]);
+      result = runCommand("qpdf", [`--password-file=${passFile}`, "--decrypt", input, plain]);
       if (result.status !== 0) return { text: null, error: "statement_password_invalid_or_pdf_unreadable" };
-      result = run("pdftotext", ["-layout", plain, output]);
+      result = runCommand("pdftotext", ["-layout", plain, output]);
       if (result.status !== 0) return { text: null, error: "pdf_text_extraction_failed" };
     }
     const text = fs.readFileSync(output, "utf8");
