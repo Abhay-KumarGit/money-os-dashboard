@@ -295,6 +295,7 @@ test("heritage orbit theme uses production assets and survives navigation", asyn
 
   await page.locator("#themeToggle").click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await page.waitForTimeout(400);
   await page.screenshot({ path: testInfo.outputPath("heritage-light.png"), fullPage: false });
 
   const lightArt = await page.evaluate(async () => {
