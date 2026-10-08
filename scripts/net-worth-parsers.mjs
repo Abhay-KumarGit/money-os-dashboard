@@ -170,6 +170,150 @@ export function parseSingleClosingBalance(text) {
   return unique.length === 1 ? unique[0] : null;
 }
 
+
+function parseDmy(value) {
+  const match = String(value || "").match(/^(\d{2})[-/](\d{2})[-/](\d{4})$/);
+  if (!match) return null;
+  return `${match[3]}-${match[2]}-${match[1]}`;
+}
+
+export function parseEpfPassbook(text) {
+  const source = String(text || "").replace(/\u00a0/g, " ");
+  if (!/Member\s+Passbook/i.test(source) || !/EPF\s+Passbook/i.test(source)) return null;
+
+  const financialYear = source.match(/Financial\s+Year\s*-\s*(\d{4}-\d{4})/i)?.[1] || null;
+  const memberId = source.match(/Member\s+ID\/Name[^\n]*?([A-Z]{2,}\d{10,})\s*\//i)?.[1] || null;
+  const uan = source.match(/\|\s*UAN\s+(\d{8,})/i)?.[1] || null;
+  const establishment = source.match(/Establishment\s+ID\/Name[^\n]*?([A-Z]{2,}\d{6,})\s*\/\s*([^\n]+)/i);
+
+  const opening = source.match(
+    /OB\s+Int\.\s+Updated\s+upto\s+(\d{2}\/\d{2}\/\d{4})\s+([\d,]+)\s+([\d,]+)\s+([\d,]+)/i,
+  );
+  const closing = source.match(
+    /Closing\s+Balance\s+as\s+on\s+(\d{2}\/\d{2}\/\d{4})\s+([\d,]+)\s+([\d,]+)\s+([\d,]+)/i,
+  );
+  if (!financialYear || !closing) return null;
+
+  const contribution = source.match(
+    /Total\s+Contributions\s+for\s+the\s+year\s*\[\s*\d{4}\s*\]\s+([\d,]+)\s+([\d,]+)\s+([\d,]+)/i,
+  );
+  const transfers = source.match(
+    /Total\s+Transfer-Ins\/VDRs\s+for\s+the\s+year\s*\[\s*\d{4}\s*\]\s+([\d,]+)\s+([\d,]+)\s+([\d,]+)/i,
+  );
+  const withdrawals = source.match(
+    /Total\s+Withdrawals\s+for\s+the\s+year\s*\[\s*\d{4}\s*\]\s+([\d,]+)\s+([\d,]+)\s+([\d,]+)/i,
+  );
+  const interest = source.match(
+    /Int\.\s+Updated\s+upto\s+(\d{2}\/\d{2}\/\d{4})\s+([\d,]+)\s+([\d,]+)\s+([\d,]+)/i,
+  );
+  const interestUnavailable = /Interest\s+details\s+N\/A/i.test(source);
+  const printed = source.match(/Printed\s+On\s*:\s*(\d{2}-\d{2}-\d{4})\s+(\d{2}:\d{2}:\d{2})/i);
+
+  const transactionRows = [...source.matchAll(
+    /^\s*([A-Z][a-z]{2}-\d{4})\s+(\d{2}-\d{2}-\d{4})\s+CR\s+Cont\.\s+for\s+Due-Month\s+(\d{6})\s+([\d,]+)\s+([\d,]+)\s+([\d,]+)\s+([\d,]+)\s+([\d,]+)\s*$/gm,
+  )].map((match) => ({
+    wage_month: match[1],
+    posting_date: parseDmy(match[2]),
+    due_month: match[3],
+    epf_wage: amount(match[4]),
+    eps_wage: amount(match[5]),
+    employee_contribution: amount(match[6]),
+    employer_epf_contribution: amount(match[7]),
+    pension_contribution: amount(match[8]),
+  }));
+
+  const closingEmployee = amount(closing[2]);
+  const closingEmployer = amount(closing[3]);
+  const closingPension = amount(closing[4]);
+  const latestPostingDate = transactionRows
+    .map((row) => row.posting_date)
+    .filter(Boolean)
+    .sort()
+    .at(-1) || null;
+
+  return {
+    financial_year: financialYear,
+    establishment_id: establishment?.[1] || null,
+    establishment_name: establishment?.[2]?.trim() || null,
+    member_tail: memberId ? memberId.slice(-4) : null,
+    uan_tail: uan ? uan.slice(-4) : null,
+    opening: opening ? {
+      as_of: opening[1].split("/").reverse().join("-"),
+      employee: amount(opening[2]),
+      employer: amount(opening[3]),
+      pension: amount(opening[4]),
+    } : null,
+    closing: {
+      label_as_of: closing[1].split("/").reverse().join("-"),
+      employee: closingEmployee,
+      employer: closingEmployer,
+      pension: closingPension,
+      epf_total: closingEmployee + closingEmployer,
+    },
+    contributions: contribution ? {
+      employee: amount(contribution[1]),
+      employer: amount(contribution[2]),
+      pension: amount(contribution[3]),
+    } : null,
+    transfers_in: transfers ? {
+      employee: amount(transfers[1]),
+      employer: amount(transfers[2]),
+      pension: amount(transfers[3]),
+    } : null,
+    withdrawals: withdrawals ? {
+      employee: amount(withdrawals[1]),
+      employer: amount(withdrawals[2]),
+      pension: amount(withdrawals[3]),
+    } : null,
+    interest: interest ? {
+      updated_upto: interest[1].split("/").reverse().join("-"),
+      employee: amount(interest[2]),
+      employer: amount(interest[3]),
+      pension: amount(interest[4]),
+    } : null,
+    interest_available: !interestUnavailable && Boolean(interest),
+    printed_at: printed ? `${parseDmy(printed[1])}T${printed[2]}+05:30` : null,
+    latest_posting_date: latestPostingDate,
+    latest_wage_month: transactionRows.at(-1)?.wage_month || null,
+    transaction_count: transactionRows.length,
+  };
+}
+
+export function validateEpfPassbookChain(passbooks) {
+  const rows = (Array.isArray(passbooks) ? passbooks : [])
+    .filter(Boolean)
+    .slice()
+    .sort((a, b) => String(a.financial_year).localeCompare(String(b.financial_year)));
+
+  if (!rows.length) return { ok: false, reason: "no_passbooks" };
+
+  const identity = rows[0];
+  for (const row of rows) {
+    if (
+      row.establishment_id !== identity.establishment_id ||
+      row.member_tail !== identity.member_tail ||
+      row.uan_tail !== identity.uan_tail
+    ) return { ok: false, reason: "account_mismatch" };
+  }
+
+  for (let i = 1; i < rows.length; i++) {
+    const previous = rows[i - 1];
+    const current = rows[i];
+    if (!previous.closing || !current.opening) return { ok: false, reason: "missing_balance_boundary" };
+    if (
+      previous.closing.employee !== current.opening.employee ||
+      previous.closing.employer !== current.opening.employer ||
+      previous.closing.pension !== current.opening.pension
+    ) return { ok: false, reason: "balance_chain_mismatch" };
+  }
+
+  return {
+    ok: true,
+    financial_years: rows.map((row) => row.financial_year),
+    latest: rows.at(-1),
+  };
+}
+
 export function ageDays(date, now = new Date()) {
   if (!date) return Infinity;
   const t = Date.parse(date + "T00:00:00Z");
