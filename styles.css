@@ -2829,3 +2829,44 @@ html[data-theme="light"] body::after{
     background:linear-gradient(180deg,rgba(163,119,70,.11),rgba(163,119,70,.035));
   }
 }
+
+
+/* Household net-worth linked sources v44 */
+.net-worth-sources-head,.net-worth-manual-head{
+  display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:18px
+}
+.net-worth-sources-head>div,.net-worth-manual-head{min-width:0}
+.net-worth-sources-head strong,.net-worth-manual-head strong{font-size:.88rem;color:var(--text)}
+.net-worth-sources-head small,.net-worth-manual-head small{display:block;margin-top:3px;color:var(--muted);font-size:.72rem;line-height:1.45}
+.source-count{
+  flex:0 0 auto;border:1px solid var(--border);border-radius:999px;padding:5px 9px;
+  color:var(--muted);font-size:.68rem;background:var(--surface-2)
+}
+.net-worth-source-list{display:grid;gap:8px;margin-top:10px}
+.net-worth-source-row{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start;
+  padding:12px 13px;border:1px solid var(--border);border-radius:12px;background:var(--surface-2)
+}
+.net-worth-source-row.is-counted{border-color:color-mix(in srgb,var(--accent) 40%,var(--border))}
+.net-worth-source-main{min-width:0}
+.net-worth-source-title{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.net-worth-source-title strong{font-size:.83rem}
+.net-worth-source-main small{display:block;margin-top:3px;color:var(--muted);font-size:.69rem}
+.net-worth-source-main p{margin:7px 0 0;color:var(--muted);font-size:.72rem;line-height:1.48}
+.net-worth-source-amount{font-size:.8rem;font-weight:650;white-space:nowrap}
+.source-status{
+  display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:999px;
+  padding:3px 7px;font-size:.62rem;line-height:1.2;color:var(--muted);background:var(--bg)
+}
+.source-status-current_verified{color:var(--positive);border-color:color-mix(in srgb,var(--positive) 35%,var(--border))}
+.source-status-active_needs_balance,.source-status-current_locked{color:var(--accent)}
+.source-status-matured_unverified,.source-status-stale{color:var(--muted)}
+.net-worth-manual-head{justify-content:flex-start;align-items:baseline;margin-top:18px}
+.net-worth-manual-head small{margin:0 0 0 7px}
+@media(max-width:640px){
+  .net-worth-sources-head{align-items:flex-start}
+  .net-worth-source-row{grid-template-columns:1fr}
+  .net-worth-source-amount{justify-self:start}
+  .net-worth-manual-head{display:block}
+  .net-worth-manual-head small{margin:3px 0 0}
+}
