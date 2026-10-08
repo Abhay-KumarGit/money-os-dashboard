@@ -381,8 +381,8 @@ async function processHdfcCard(accessToken, records, events, failures) {
 
   if (due == null) {
     records.push({
-      source_key: `gmail:hdfc:card:${tail}`, name: "HDFC Millennia credit card", kind: "liability", category: "credit", provider: "HDFC Bank",
-      masked_identifier: `Card ••${tail}`, status: parserStatus.includes("password") ? "current_locked" : "active_needs_balance",
+      source_key: sourceKey, name: "HDFC Millennia credit card", kind: "liability", category: "credit", provider: "HDFC Bank",
+      masked_identifier: null, status: parserStatus.includes("password") ? "current_locked" : "active_needs_balance",
       observed_amount: null, counted: false, evidence_date: evidenceDate,
       evidence_note: "Latest HDFC card statement was found, but Total Amount Due could not be verified unambiguously; it is not counted.",
     });
@@ -393,8 +393,8 @@ async function processHdfcCard(accessToken, records, events, failures) {
 
   const current = freshness(evidenceDate, due);
   records.push({
-    source_key: `gmail:hdfc:card:${tail}`, name: "HDFC Millennia credit card", kind: "liability", category: "credit", provider: "HDFC Bank",
-    masked_identifier: `Card ••${tail}`, status: current.status, observed_amount: due, counted: current.counted, evidence_date: evidenceDate,
+    source_key: sourceKey, name: "HDFC Millennia credit card", kind: "liability", category: "credit", provider: "HDFC Bank",
+    masked_identifier: null, status: current.status, observed_amount: due, counted: current.counted, evidence_date: evidenceDate,
     evidence_note: "Statement liability extracted from the latest HDFC credit-card statement.",
   });
   events.push(event(message, "processed", "HDFC_CREDIT_CARD_STATEMENT", { parser_status: parserStatus, payment_due_date: parsePaymentDueDate(messageText(message)) }));
@@ -415,7 +415,7 @@ async function processIciciCard(accessToken, records, events) {
   if (due == null) {
     records.push({
       source_key: `gmail:icici:card:${tail}`, name: "Amazon Pay ICICI credit card", kind: "liability", category: "credit", provider: "ICICI Bank",
-      masked_identifier: `Card ••${tail}`, status: "stale", observed_amount: null, counted: false, evidence_date: evidenceDate,
+      masked_identifier: null, status: "stale", observed_amount: null, counted: false, evidence_date: evidenceDate,
       evidence_note: "ICICI card statement source exists, but the latest message did not yield a verified amount.",
     });
     events.push(event(message, "failed", "ICICI_CREDIT_CARD_STATEMENT", { parser_status: "amount_ambiguous" }));
@@ -425,7 +425,7 @@ async function processIciciCard(accessToken, records, events) {
   const current = freshness(evidenceDate, due);
   records.push({
     source_key: `gmail:icici:card:${tail}`, name: "Amazon Pay ICICI credit card", kind: "liability", category: "credit", provider: "ICICI Bank",
-    masked_identifier: `Card ••${tail}`, status: current.status, observed_amount: due, counted: current.counted, evidence_date: evidenceDate,
+    masked_identifier: null, status: current.status, observed_amount: due, counted: current.counted, evidence_date: evidenceDate,
     evidence_note: current.counted
       ? "Total Amount Due extracted from the latest ICICI card statement email."
       : "Latest ICICI statement amount was verified but is too old to represent a current liability.",
