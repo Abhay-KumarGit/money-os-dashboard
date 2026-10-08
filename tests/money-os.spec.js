@@ -247,6 +247,8 @@ test("authenticated portfolio intelligence and interactions work", async ({ page
   await expect(page.locator("#netWorthSources")).toContainText("EPF provident fund");
   await expect(page.locator("#netWorthSources")).toContainText("EPS pension record");
   await page.locator("#privacyToggle").click();
+  await page.locator("#privacyUnlockPassword").fill("1234");
+  await page.locator("#privacyUnlockBtn").click();
   await expect(page.locator("#netWorthAssets")).toContainText("1,23,456");
   await page.locator("#netWorthName").fill("EPF");
   await page.locator("#netWorthAmount").fill("250000");
