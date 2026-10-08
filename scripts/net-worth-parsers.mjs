@@ -1,6 +1,6 @@
 function amount(value) {
   if (value == null) return null;
-  const cleaned = String(value).replace(/[₹Rs.INR\s,]/gi, "").replace(/[^0-9.-]/g, "");
+  const cleaned = String(value).replace(/,/g, "").replace(/[^0-9.-]/g, "");
   const n = Number(cleaned);
   return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) / 100 : null;
 }
@@ -123,7 +123,7 @@ export function parseBankAccountBalances(text) {
     const masked = normalizeMaskedIdentifier(idMatch[1]);
     if (!masked) continue;
 
-    const start = Math.max(0, i - 5);
+    const start = i;
     let end = Math.min(lines.length, i + 25);
     for (let j = i + 1; j < end; j++) {
       if (/(?:account|a\/c).{0,20}(?:no|number|#)/i.test(lines[j])) {
@@ -132,8 +132,8 @@ export function parseBankAccountBalances(text) {
       }
     }
     const windowLines = lines.slice(start, end);
-    const window = windowLines.join("\n");
-    const category = classifyWindow(window);
+    const contextLines = lines.slice(Math.max(0, i - 4), end);
+    const window = contextLines.join("\n");
 
     const balanceMatches = [];
     for (const candidate of windowLines) {
