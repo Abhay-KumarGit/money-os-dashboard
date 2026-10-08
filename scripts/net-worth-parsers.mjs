@@ -134,6 +134,7 @@ export function parseBankAccountBalances(text) {
     const windowLines = lines.slice(start, end);
     const contextLines = lines.slice(Math.max(0, i - 4), end);
     const window = contextLines.join("\n");
+    const category = classifyWindow(window);
 
     const balanceMatches = [];
     for (const candidate of windowLines) {
