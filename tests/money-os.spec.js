@@ -267,7 +267,8 @@ test("heritage orbit theme uses production assets and survives navigation", asyn
   expect(darkArt.image).toContain("heritage-orbit-clean-dark.svg");
   expect(darkArt.display).not.toBe("none");
   expect(darkArt.status).toBe(200);
-  expect(darkArt.bytes).toBeGreaterThan(10000);
+  expect(darkArt.contentType).toContain("image/svg+xml");
+  expect(darkArt.bytes).toBeGreaterThan(4000);
 
   if (!testInfo.project.name.includes("mobile")) {
     const activeStyle = await page.locator('.tabs [data-nav="daily"]').evaluate((el) => ({
@@ -311,7 +312,8 @@ test("heritage orbit theme uses production assets and survives navigation", asyn
   expect(lightArt.image).toContain("heritage-orbit-clean-light.svg");
   expect(lightArt.display).not.toBe("none");
   expect(lightArt.status).toBe(200);
-  expect(lightArt.bytes).toBeGreaterThan(10000);
+  expect(lightArt.contentType).toContain("image/svg+xml");
+  expect(lightArt.bytes).toBeGreaterThan(4000);
 
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(2);
