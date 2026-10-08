@@ -253,7 +253,7 @@ test("heritage orbit theme uses production assets and survives navigation", asyn
 
   const darkArt = await page.evaluate(async () => {
     const pseudo = getComputedStyle(document.body, "::before");
-    const response = await fetch("./assets/heritage-orbit-dark.webp", { cache: "no-store" });
+    const response = await fetch("./assets/heritage-orbit-clean-dark.svg", { cache: "no-store" });
     const bytes = await response.arrayBuffer();
     return {
       image: pseudo.backgroundImage,
@@ -264,7 +264,7 @@ test("heritage orbit theme uses production assets and survives navigation", asyn
       bytes: bytes.byteLength
     };
   });
-  expect(darkArt.image).toContain("heritage-orbit-dark.webp");
+  expect(darkArt.image).toContain("heritage-orbit-clean-dark.svg");
   expect(darkArt.display).not.toBe("none");
   expect(darkArt.status).toBe(200);
   expect(darkArt.bytes).toBeGreaterThan(10000);
@@ -289,13 +289,16 @@ test("heritage orbit theme uses production assets and survives navigation", asyn
   await page.locator("#settingsBtn").click();
   await expect(page.locator("#view-settings")).toHaveClass(/active/);
 
+  await page.locator(`${navRoot} [data-nav="daily"]`).click();
+  await expect(page.locator("#view-daily")).toHaveClass(/active/);
+
   await page.locator("#themeToggle").click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await page.screenshot({ path: testInfo.outputPath("heritage-light.png"), fullPage: false });
 
   const lightArt = await page.evaluate(async () => {
     const pseudo = getComputedStyle(document.body, "::before");
-    const response = await fetch("./assets/heritage-orbit-light.webp", { cache: "no-store" });
+    const response = await fetch("./assets/heritage-orbit-clean-light.svg", { cache: "no-store" });
     const bytes = await response.arrayBuffer();
     return {
       image: pseudo.backgroundImage,
@@ -305,7 +308,7 @@ test("heritage orbit theme uses production assets and survives navigation", asyn
       bytes: bytes.byteLength
     };
   });
-  expect(lightArt.image).toContain("heritage-orbit-light.webp");
+  expect(lightArt.image).toContain("heritage-orbit-clean-light.svg");
   expect(lightArt.display).not.toBe("none");
   expect(lightArt.status).toBe(200);
   expect(lightArt.bytes).toBeGreaterThan(10000);

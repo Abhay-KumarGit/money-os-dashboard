@@ -2967,3 +2967,48 @@ html[data-theme="light"] body::before{
     background-position:68% top;
   }
 }
+
+
+/* Final clean heritage artwork v47
+   Dedicated background-only assets verified through Playwright screenshots. */
+body::before{
+  content:"";
+  display:block;
+  position:fixed;
+  z-index:0;
+  inset:0 0 auto 0;
+  width:100%;
+  height:min(56vh,520px);
+  pointer-events:none;
+  background-image:url("./assets/heritage-orbit-clean-dark.svg");
+  background-repeat:no-repeat;
+  background-position:center top;
+  background-size:100% auto;
+  opacity:1;
+  mix-blend-mode:normal;
+  -webkit-mask-image:none;
+  mask-image:none;
+}
+html[data-theme="light"] body::before{
+  background-image:url("./assets/heritage-orbit-clean-light.svg");
+  opacity:1;
+  mix-blend-mode:normal;
+}
+body::after{display:none!important}
+
+@media(max-width:1280px) and (min-width:781px){
+  body::before,
+  html[data-theme="light"] body::before{
+    height:min(54vh,500px);
+    background-size:auto 500px;
+    background-position:66% top;
+  }
+}
+@media(max-width:780px){
+  body::before,
+  html[data-theme="light"] body::before{
+    height:min(43vh,400px);
+    background-size:auto 400px;
+    background-position:69% top;
+  }
+}
