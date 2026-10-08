@@ -124,7 +124,13 @@ export function parseBankAccountBalances(text) {
     if (!masked) continue;
 
     const start = Math.max(0, i - 5);
-    const end = Math.min(lines.length, i + 25);
+    let end = Math.min(lines.length, i + 25);
+    for (let j = i + 1; j < end; j++) {
+      if (/(?:account|a\\/c).{0,20}(?:no|number|#)/i.test(lines[j])) {
+        end = j;
+        break;
+      }
+    }
     const windowLines = lines.slice(start, end);
     const window = windowLines.join("\n");
     const category = classifyWindow(window);
