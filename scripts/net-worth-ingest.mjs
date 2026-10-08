@@ -361,7 +361,7 @@ async function processHdfcCard(accessToken, records, events, failures) {
   if (!message) return;
   const subject = header(message, "Subject");
   const evidenceDate = statementEndFromSubject(subject, msgDate(message));
-  const tail = maskedTail(subject + "\n" + messageText(message), 4) || "0712";
+  const sourceKey = "gmail:hdfc:card:millennia";
   let due = parseCardDue(messageText(message));
   let parserStatus = due == null ? "email_amount_missing" : "verified_email";
 
@@ -415,7 +415,7 @@ async function processIciciCard(accessToken, records, events) {
   if (due == null) {
     records.push({
       source_key: `gmail:icici:card:${tail}`, name: "Amazon Pay ICICI credit card", kind: "liability", category: "credit", provider: "ICICI Bank",
-      masked_identifier: null, status: "stale", observed_amount: null, counted: false, evidence_date: evidenceDate,
+      masked_identifier: `Card ••${tail}`, status: "stale", observed_amount: null, counted: false, evidence_date: evidenceDate,
       evidence_note: "ICICI card statement source exists, but the latest message did not yield a verified amount.",
     });
     events.push(event(message, "failed", "ICICI_CREDIT_CARD_STATEMENT", { parser_status: "amount_ambiguous" }));
@@ -425,7 +425,7 @@ async function processIciciCard(accessToken, records, events) {
   const current = freshness(evidenceDate, due);
   records.push({
     source_key: `gmail:icici:card:${tail}`, name: "Amazon Pay ICICI credit card", kind: "liability", category: "credit", provider: "ICICI Bank",
-    masked_identifier: null, status: current.status, observed_amount: due, counted: current.counted, evidence_date: evidenceDate,
+    masked_identifier: `Card ••${tail}`, status: current.status, observed_amount: due, counted: current.counted, evidence_date: evidenceDate,
     evidence_note: current.counted
       ? "Total Amount Due extracted from the latest ICICI card statement email."
       : "Latest ICICI statement amount was verified but is too old to represent a current liability.",
