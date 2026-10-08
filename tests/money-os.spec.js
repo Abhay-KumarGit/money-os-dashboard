@@ -225,3 +225,71 @@ test("mobile layout has no horizontal overflow and sorting remains available", a
   const overviewOverflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overviewOverflow).toBeLessThanOrEqual(2);
 });
+
+
+test("heritage orbit theme uses production assets and survives navigation", async ({ page }, testInfo) => {
+  await page.addInitScript(() => localStorage.setItem("moneyos.theme", "dark"));
+  await mockAuthenticatedApp(page);
+  await page.goto("/");
+  await expect(page.locator("#app")).toBeVisible();
+
+  const darkArt = await page.evaluate(async () => {
+    const pseudo = getComputedStyle(document.body, "::before");
+    const response = await fetch("./assets/heritage-orbit-dark.webp", { cache: "no-store" });
+    const bytes = await response.arrayBuffer();
+    return {
+      image: pseudo.backgroundImage,
+      display: pseudo.display,
+      height: pseudo.height,
+      status: response.status,
+      contentType: response.headers.get("content-type") || "",
+      bytes: bytes.byteLength
+    };
+  });
+  expect(darkArt.image).toContain("heritage-orbit-dark.webp");
+  expect(darkArt.display).not.toBe("none");
+  expect(darkArt.status).toBe(200);
+  expect(darkArt.bytes).toBeGreaterThan(10000);
+
+  if (!testInfo.project.name.includes("mobile")) {
+    const activeStyle = await page.locator('.tabs [data-nav="daily"]').evaluate((el) => ({
+      bg: getComputedStyle(el).backgroundImage,
+      marker: getComputedStyle(el, "::before").backgroundImage,
+      markerWidth: getComputedStyle(el, "::before").width
+    }));
+    expect(activeStyle.bg).toContain("linear-gradient");
+    expect(activeStyle.marker).toContain("linear-gradient");
+    expect(parseFloat(activeStyle.markerWidth)).toBeGreaterThanOrEqual(2);
+  }
+
+  const navRoot = testInfo.project.name.includes("mobile") ? ".mobile-nav" : ".tabs";
+  for (const view of ["daily", "stocks", "funds", "activity", "overview"]) {
+    await page.locator(`${navRoot} [data-nav="${view}"]`).click();
+    await expect(page.locator(`#view-${view}`)).toHaveClass(/active/);
+  }
+
+  await page.locator("#settingsBtn").click();
+  await expect(page.locator("#view-settings")).toHaveClass(/active/);
+
+  await page.locator("#themeToggle").click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  const lightArt = await page.evaluate(async () => {
+    const pseudo = getComputedStyle(document.body, "::before");
+    const response = await fetch("./assets/heritage-orbit-light.webp", { cache: "no-store" });
+    const bytes = await response.arrayBuffer();
+    return {
+      image: pseudo.backgroundImage,
+      display: pseudo.display,
+      status: response.status,
+      contentType: response.headers.get("content-type") || "",
+      bytes: bytes.byteLength
+    };
+  });
+  expect(lightArt.image).toContain("heritage-orbit-light.webp");
+  expect(lightArt.display).not.toBe("none");
+  expect(lightArt.status).toBe(200);
+  expect(lightArt.bytes).toBeGreaterThan(10000);
+
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  expect(overflow).toBeLessThanOrEqual(2);
+});
