@@ -98,7 +98,37 @@ const summary = {
 
 let settings = {
   preferences: { target_stocks: 70, target_mutual_funds: 30, target_other: 0, updated_at: "2026-10-07T17:00:00Z" },
-  net_worth_items: []
+  net_worth_items: [],
+  net_worth_sources: [
+    {
+      source_key: "gmail:nps:protean:tier1:xx2278",
+      name: "NPS Tier I",
+      kind: "asset",
+      category: "nps",
+      provider: "Protean CRA",
+      masked_identifier: "PRAN ••2278",
+      status: "active_needs_balance",
+      observed_amount: null,
+      counted: false,
+      evidence_date: "2026-09-09",
+      maturity_date: null,
+      evidence_note: "Recurring contribution-credit emails found; current balance is not yet verified."
+    },
+    {
+      source_key: "gmail:hdfc:fd:5371",
+      name: "HDFC Fixed Deposit",
+      kind: "asset",
+      category: "fd",
+      provider: "HDFC Bank",
+      masked_identifier: "FD ••5371",
+      status: "matured_unverified",
+      observed_amount: 10000,
+      counted: false,
+      evidence_date: "2025-02-11",
+      maturity_date: "2026-08-07",
+      evidence_note: "Historical principal only; matured and excluded from net worth."
+    }
+  ]
 };
 
 async function mockAuthenticatedApp(page) {
@@ -167,6 +197,10 @@ test("authenticated portfolio intelligence and interactions work", async ({ page
   await expect(page.locator("#rebalanceSuggestion")).toContainText("Contribution-first suggestion");
 
   await page.locator("#netWorthForm").evaluate(form => form.closest("details").open = true);
+  await expect(page.locator("#netWorthSourceCount")).toHaveText("2 found · 0 counted");
+  await expect(page.locator("#netWorthSources")).toContainText("NPS Tier I");
+  await expect(page.locator("#netWorthSources")).toContainText("Needs balance");
+  await expect(page.locator("#netWorthSources")).toContainText("Matured");
   await page.locator("#netWorthName").fill("EPF");
   await page.locator("#netWorthAmount").fill("250000");
   await page.locator("#netWorthForm").dispatchEvent("submit");
