@@ -2703,3 +2703,129 @@ html[data-theme="light"] body::before{
     background-position:72% top;
   }
 }
+
+
+/* Asset-backed heritage orbit theme v43
+   Uses dedicated SVG artwork so the approved composition stays stable across themes and devices. */
+body{
+  position:relative;
+  isolation:isolate;
+  background:var(--bg);
+}
+body::before{
+  content:"";
+  position:fixed;
+  z-index:0;
+  inset:0 0 auto 0;
+  width:100%;
+  height:min(58vh,650px);
+  pointer-events:none;
+  background-image:url("./assets/heritage-orbit-dark.svg");
+  background-repeat:no-repeat;
+  background-position:right top;
+  background-size:cover;
+  opacity:1;
+}
+body::after{
+  content:"";
+  position:fixed;
+  z-index:0;
+  inset:0 0 auto 0;
+  height:min(58vh,650px);
+  pointer-events:none;
+  background:
+    radial-gradient(58rem 26rem at 84% -8%,rgba(28,48,67,.16),transparent 70%),
+    radial-gradient(34rem 18rem at 18% -8%,rgba(17,33,48,.10),transparent 72%);
+}
+.app,.locked{
+  position:relative;
+  z-index:1;
+}
+
+/* Light mode uses a separately tuned asset rather than fading the dark artwork away. */
+html[data-theme="light"] body{
+  background:var(--bg);
+}
+html[data-theme="light"] body::before{
+  background-image:url("./assets/heritage-orbit-light.svg");
+  opacity:1;
+  mix-blend-mode:multiply;
+}
+html[data-theme="light"] body::after{
+  background:
+    radial-gradient(58rem 26rem at 84% -8%,rgba(112,132,154,.045),transparent 70%),
+    radial-gradient(34rem 18rem at 18% -8%,rgba(151,113,67,.025),transparent 72%);
+}
+
+/* Approved side-selection treatment: bronze starts at the edge and fades into the page. */
+@media(min-width:901px){
+  .nav-rail .tabs button.active{
+    color:var(--text);
+    background:
+      linear-gradient(90deg,
+        rgba(211,160,95,.23) 0%,
+        rgba(211,160,95,.11) 38%,
+        rgba(211,160,95,.035) 72%,
+        transparent 100%);
+    border-color:transparent;
+    box-shadow:none;
+  }
+  .nav-rail .tabs button.active::before{
+    left:0;
+    top:18%;
+    bottom:18%;
+    width:3px;
+    border-radius:3px;
+    background:linear-gradient(180deg,transparent 0%,#e4b474 18%,#c88e4d 78%,transparent 100%);
+    box-shadow:0 0 13px rgba(217,164,94,.24);
+  }
+  .nav-rail .tabs button:hover{
+    background:linear-gradient(90deg,rgba(211,160,95,.055),rgba(211,160,95,.012) 68%,transparent);
+  }
+
+  html[data-theme="light"] .nav-rail .tabs button.active{
+    color:#2f251c;
+    background:
+      linear-gradient(90deg,
+        rgba(163,119,70,.16) 0%,
+        rgba(163,119,70,.075) 42%,
+        rgba(163,119,70,.018) 76%,
+        transparent 100%);
+  }
+}
+
+/* Keep existing blue semantic states intact. */
+.privacy-toggle[aria-pressed="true"],
+.sort-header.active,
+.learn-this-btn{
+  --heritage-semantic-accent:var(--accent);
+}
+
+/* Responsive cropping keeps the large orbit in the top-right instead of recentering it. */
+@media(max-width:1280px) and (min-width:781px){
+  body::before,
+  html[data-theme="light"] body::before{
+    background-size:1550px auto;
+    background-position:72% top;
+  }
+}
+@media(max-width:780px){
+  body::before,
+  html[data-theme="light"] body::before{
+    height:min(46vh,440px);
+    background-size:1120px auto;
+    background-position:72% top;
+  }
+  body::after,
+  html[data-theme="light"] body::after{
+    height:min(46vh,440px);
+  }
+  .mobile-nav button.active{
+    color:#fff5e8;
+    background:linear-gradient(180deg,rgba(211,160,95,.12),rgba(211,160,95,.045));
+  }
+  html[data-theme="light"] .mobile-nav button.active{
+    color:#493621;
+    background:linear-gradient(180deg,rgba(163,119,70,.11),rgba(163,119,70,.035));
+  }
+}
