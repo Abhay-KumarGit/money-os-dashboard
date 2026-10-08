@@ -3012,3 +3012,17 @@ body::after{display:none!important}
     background-position:69% top;
   }
 }
+
+
+/* Lightweight page entry on sidebar and bottom navigation.
+   Keep inactive views out of layout and animate only opacity/transform. */
+@keyframes money-os-view-enter {
+  from { opacity: 0; transform: translate3d(0, 7px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+.view.active {
+  animation: money-os-view-enter 180ms cubic-bezier(.2, .7, .2, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .view.active { animation: none; }
+}
