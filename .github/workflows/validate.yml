@@ -14,7 +14,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Check JavaScript syntax
-        run: node --check app.js
+        run: |
+          node --check app.js
+          node --check scripts/net-worth-parsers.mjs
+          node --check scripts/net-worth-ingest.mjs
+      - name: Test financial statement parsers
+        run: node --test tests/net-worth-parsers.test.mjs
       - name: Validate manifest and required files
         run: |
           python - <<'PY'
