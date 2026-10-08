@@ -755,13 +755,53 @@ function renderTimeMachine() {
 
 function renderNetWorth() {
   const items = Array.isArray(state.portfolioSettings?.net_worth_items) ? state.portfolioSettings.net_worth_items : [];
+  const sources = Array.isArray(state.portfolioSettings?.net_worth_sources) ? state.portfolioSettings.net_worth_sources : [];
+  const countedSources = sources.filter((x) => x.counted && x.status === "current_verified" && Number.isFinite(Number(x.observed_amount)));
   const portfolio = num(state.data?.latest?.total_value);
-  const assets = items.filter((x) => x.kind === "asset").reduce((sum, x) => sum + num(x.amount), 0);
-  const liabilities = items.filter((x) => x.kind === "liability").reduce((sum, x) => sum + num(x.amount), 0);
+  const manualAssets = items.filter((x) => x.kind === "asset").reduce((sum, x) => sum + num(x.amount), 0);
+  const manualLiabilities = items.filter((x) => x.kind === "liability").reduce((sum, x) => sum + num(x.amount), 0);
+  const linkedAssets = countedSources.filter((x) => x.kind === "asset").reduce((sum, x) => sum + num(x.observed_amount), 0);
+  const linkedLiabilities = countedSources.filter((x) => x.kind === "liability").reduce((sum, x) => sum + num(x.observed_amount), 0);
+  const assets = manualAssets + linkedAssets;
+  const liabilities = manualLiabilities + linkedLiabilities;
+
   if ($("netWorthPortfolio")) $("netWorthPortfolio").textContent = money(portfolio);
   if ($("netWorthAssets")) $("netWorthAssets").textContent = money(assets);
   if ($("netWorthLiabilities")) $("netWorthLiabilities").textContent = money(liabilities);
   if ($("netWorthTotal")) $("netWorthTotal").textContent = money(portfolio + assets - liabilities);
+
+  const sourceList = $("netWorthSources");
+  const sourceCount = $("netWorthSourceCount");
+  const statusLabels = {
+    current_verified: "Counted",
+    active_needs_balance: "Needs balance",
+    current_locked: "Statement locked",
+    matured_unverified: "Matured",
+    stale: "Stale"
+  };
+  if (sourceCount) {
+    sourceCount.textContent = sources.length
+      ? sources.length + " found · " + countedSources.length + " counted"
+      : "None found";
+  }
+  if (sourceList) {
+    sourceList.innerHTML = sources.length ? sources.map((source) => {
+      const status = statusLabels[source.status] || "Review";
+      const amount = source.observed_amount === null || source.observed_amount === undefined
+        ? ""
+        : '<span class="net-worth-source-amount">' + escapeHtml(money(source.observed_amount)) + '</span>';
+      const date = source.evidence_date ? " · " + dateLabel(source.evidence_date) : "";
+      const identifier = source.masked_identifier ? " · " + source.masked_identifier : "";
+      return '<article class="net-worth-source-row ' + (source.counted ? "is-counted" : "") + '">' +
+        '<div class="net-worth-source-main"><div class="net-worth-source-title"><strong>' + escapeHtml(source.name) + '</strong>' +
+        '<span class="source-status source-status-' + escapeHtml(source.status) + '">' + escapeHtml(status) + '</span></div>' +
+        '<small>' + escapeHtml(source.provider + identifier + date) + '</small>' +
+        '<p>' + escapeHtml(source.evidence_note || "Source discovered; current value not yet verified.") + '</p></div>' +
+        amount +
+      '</article>';
+    }).join("") : '<div class="empty-inline">No linked financial sources discovered yet.</div>';
+  }
+
   const list = $("netWorthList");
   if (!list) return;
   list.innerHTML = items.length ? items.map((item) =>
@@ -769,7 +809,7 @@ function renderNetWorth() {
     escapeHtml(item.category + " · " + item.kind) + '</small></div><span>' + escapeHtml(money(item.amount)) +
     '</span><button type="button" class="net-worth-delete" data-net-worth-delete="' + escapeHtml(item.id) +
     '" aria-label="Delete ' + escapeHtml(item.name) + '">×</button></div>'
-  ).join("") : '<div class="empty-inline">No external assets or liabilities added.</div>';
+  ).join("") : '<div class="empty-inline">No manual assets or liabilities added.</div>';
 }
 
 async function addNetWorthItem(event) {
