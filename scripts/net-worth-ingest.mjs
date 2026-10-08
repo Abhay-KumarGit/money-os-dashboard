@@ -239,7 +239,7 @@ async function processNps(accessToken, records, events, failures) {
   const evidenceDate = statementEndFromSubject(subject, msgDate(message));
   const attachment = attachments(message).find((a) => /\.pdf$/i.test(a.filename));
   const tail = maskedTail(attachment?.filename || subject, 4) || "unknown";
-  const sourceKey = `gmail:nps:protean:tier1:${tail}`;
+  const sourceKey = `gmail:nps:protean:tier1:xx${tail}`;
 
   if (!attachment) {
     records.push({
