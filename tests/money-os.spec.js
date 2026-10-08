@@ -128,6 +128,20 @@ let settings = {
       maturity_date: "2026-08-07",
       evidence_note: "Historical principal only; matured and excluded from net worth."
     }
+,    {
+      source_key: "gmail:hdfc:combined-statement",
+      name: "HDFC Bank accounts",
+      kind: "asset",
+      category: "cash",
+      provider: "HDFC Bank",
+      masked_identifier: null,
+      status: "current_verified",
+      observed_amount: 50000,
+      counted: false,
+      evidence_date: "2026-09-30",
+      maturity_date: null,
+      evidence_note: "Statement parsed into account-level sources; this envelope is not counted separately."
+    }
   ]
 };
 
@@ -197,10 +211,11 @@ test("authenticated portfolio intelligence and interactions work", async ({ page
   await expect(page.locator("#rebalanceSuggestion")).toContainText("Contribution-first suggestion");
 
   await page.locator("#netWorthForm").evaluate(form => form.closest("details").open = true);
-  await expect(page.locator("#netWorthSourceCount")).toHaveText("2 found · 0 counted");
+  await expect(page.locator("#netWorthSourceCount")).toHaveText("3 found · 0 counted");
   await expect(page.locator("#netWorthSources")).toContainText("NPS Tier I");
   await expect(page.locator("#netWorthSources")).toContainText("Needs balance");
   await expect(page.locator("#netWorthSources")).toContainText("Matured");
+  await expect(page.locator("#netWorthSources")).toContainText("Verified source");
   await page.locator("#netWorthName").fill("EPF");
   await page.locator("#netWorthAmount").fill("250000");
   await page.locator("#netWorthForm").dispatchEvent("submit");
