@@ -28,7 +28,41 @@ jobs:
         with:
           node-version: "22"
 
+      # Report incomplete OAuth configuration clearly, before installing PDF tools.
+      # The reconciliation step still runs when config is missing so it can record
+      # degraded service health in Supabase through GitHub OIDC.
+      - name: Check Gmail OAuth configuration
+        id: gmail_auth
+        shell: bash
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
+          GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
+          GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
+        run: |
+          set -euo pipefail
+          missing=()
+          [[ -n "${GOOGLE_CLIENT_ID:-${GMAIL_CLIENT_ID:-}}" ]] || missing+=("client ID")
+          [[ -n "${GOOGLE_CLIENT_SECRET:-${GMAIL_CLIENT_SECRET:-}}" ]] || missing+=("client secret")
+          [[ -n "${GOOGLE_REFRESH_TOKEN:-${GMAIL_REFRESH_TOKEN:-}}" ]] || missing+=("refresh token")
+          if (( ${#missing[@]} == 0 )); then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            echo "Gmail OAuth credential variables are present (token validity checked by ingestion)."
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            missing_list="$(IFS=', '; echo "${missing[*]}")"
+            echo "::warning title=Gmail OAuth configuration missing::Missing: ${missing_list}. Configure GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET and GOOGLE_REFRESH_TOKEN (or GMAIL_* aliases) in the money-os-ingestion environment."
+            {
+              echo "### Net-worth ingestion blocked: Gmail OAuth configuration"
+              echo "Missing: ${missing_list}. Add the matching OAuth secrets to the **money-os-ingestion** GitHub environment."
+              echo "The reconciliation step will still publish **degraded** service health and fail; no unverified values will be imported."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Install statement tools
+        if: steps.gmail_auth.outputs.ready == 'true'
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y --no-install-recommends qpdf poppler-utils
