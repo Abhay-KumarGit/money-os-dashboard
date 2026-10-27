@@ -2153,6 +2153,108 @@ async function refreshDailyReport() {
   }
 }
 
+function aiReportItems(items) {
+  return (Array.isArray(items) ? items : []).map((item) => {
+    if (typeof item === "string") return item;
+    if (!item || typeof item !== "object") return String(item || "");
+    return {
+      priority: item.priority || undefined,
+      title: item.title || "",
+      detail: item.detail || item.text || item.summary || ""
+    };
+  });
+}
+
+function buildManualAiPrompt() {
+  const latest = Array.isArray(state.data?.recommendations) ? state.data.recommendations[0] : null;
+  if (!latest) return "";
+
+  const holdings = (state.data?.positions || [])
+    .slice()
+    .sort((a, b) => num(b.market_value) - num(a.market_value))
+    .map((p) => {
+      const i = p.instruments || {};
+      return {
+        name: i.name || i.symbol || i.scheme_code || "Unknown",
+        symbol: i.symbol || null,
+        asset_type: i.asset_type || null,
+        quantity: p.quantity,
+        price_or_nav: p.close,
+        price_date: p.price_date || null,
+        average_cost: p.average_cost,
+        market_value: p.market_value,
+        unrealized_pnl: p.unrealized_pnl,
+        return_pct: p.return_pct
+      };
+    });
+
+  const history = (state.data?.history || []).slice(-10).map((row) => ({
+    snapshot_date: row.snapshot_date,
+    total_value: row.total_value,
+    day_change: row.day_change,
+    day_change_pct: row.day_change_pct,
+    benchmark_close: row.benchmark_close,
+    benchmark_day_pct: row.benchmark_day_pct
+  }));
+
+  const report = {
+    recommendation_date: latest.recommendation_date,
+    trading_day: latest.trading_day,
+    generated_at: latest.generated_at || latest.updated_at,
+    summary: latest.summary || "",
+    actions: aiReportItems(latest.actions),
+    highlights: aiReportItems(latest.highlights),
+    risks: aiReportItems(latest.risks)
+  };
+
+  return [
+    "Analyze my Money OS portfolio using the verified saved context below.",
+    "",
+    "Important rules:",
+    "- Treat Money OS values below as the portfolio source of truth.",
+    "- Analyze the most recent COMPLETED Indian market session, not the new pre-market calendar day.",
+    "- Before any BUY/ADD/HOLD/TRIM/SELL/EXIT view, compare multi-day performance, fresh company/scheme fundamentals, and portfolio allocation/concentration.",
+    "- Use current credible public internet sources for fundamentals and company/regulatory developments. Use Reddit/investor discussion only as a secondary sentiment check.",
+    "- Clearly separate Money OS verified values from external facts and from your interpretation.",
+    "- Do not invent missing values and do not execute trades.",
+    "- Keep the final report concise, beginner-friendly, and actionable.",
+    "",
+    "SAVED MONEY OS REPORT:",
+    JSON.stringify(report, null, 2),
+    "",
+    "RECENT MONEY OS SNAPSHOTS:",
+    JSON.stringify(history, null, 2),
+    "",
+    "CURRENT VERIFIED HOLDINGS:",
+    JSON.stringify(holdings, null, 2),
+    "",
+    "Return: portfolio performance, 3/5/10-session context where supported, biggest contributors/drags, fundamentals/thesis review for material positions, allocation/concentration assessment, three-lens ALIGN/MIXED/CONFLICT conclusions, and prioritized next actions."
+  ].join("\n");
+}
+
+async function prepareManualAiAnalysis() {
+  const button = $("dailyAiBtn");
+  if (!button || button.disabled) return;
+  if (state.masked) {
+    showToast("Reveal financial values before preparing AI analysis context.");
+    return;
+  }
+
+  const prompt = buildManualAiPrompt();
+  if (!prompt) {
+    showToast("No saved daily report is available yet.");
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(prompt);
+    showToast("AI analysis prompt copied — paste it into ChatGPT Free.");
+  } catch (error) {
+    console.error("Could not copy AI analysis prompt", error);
+    showToast("Could not copy the AI analysis prompt.");
+  }
+}
+
 function renderDailyHistory(previous) {
   const tabs = $("dailyHistoryTabs");
   const panel = $("dailyHistory");
@@ -2197,6 +2299,7 @@ function renderRecommendations() {
   const rows = Array.isArray(state.data?.recommendations) ? state.data.recommendations : [];
   if (!rows.length) {
     $("dailyLatestDate").textContent = "—";
+    if ($("dailyAiBtn")) $("dailyAiBtn").disabled = true;
     empty.classList.remove("hidden");
     content.classList.add("hidden");
     empty.innerHTML = '<div class="daily-empty-icon" aria-hidden="true">✦</div><div><h3>No daily report yet</h3><p>Your next completed portfolio run will appear here.</p></div>';
@@ -2204,6 +2307,7 @@ function renderRecommendations() {
   }
 
   const latest = rows[0];
+  if ($("dailyAiBtn")) $("dailyAiBtn").disabled = false;
   empty.classList.add("hidden");
   content.classList.remove("hidden");
   $("dailyLatestDate").textContent = dateLabel(latest.recommendation_date);
@@ -2363,6 +2467,7 @@ function bindEvents() {
   $("themeToggle").addEventListener("click", toggleTheme);
   $("privacyToggle").addEventListener("click", togglePrivacy);
   $("dailyRefreshBtn")?.addEventListener("click", refreshDailyReport);
+  $("dailyAiBtn")?.addEventListener("click", prepareManualAiAnalysis);
   $("healthCheckBtn")?.addEventListener("click", checkHealth);
   $("targetAllocationForm")?.addEventListener("submit", saveTargets);
   $("nextContribution")?.addEventListener("input", renderRebalance);
