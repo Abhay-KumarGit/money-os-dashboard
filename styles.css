@@ -856,6 +856,8 @@ html[data-theme="light"] .daily-summary{color:#34455b}
 }
 
 .daily-head-actions{display:flex;align-items:center;gap:12px}
+.daily-ai-btn{min-height:42px;white-space:nowrap}
+.daily-ai-btn:disabled{opacity:.48;cursor:default}
 .daily-refresh-btn{
   min-height:42px;padding:0 13px;border:1px solid rgba(104,166,255,.28);border-radius:12px;
   display:inline-flex;align-items:center;justify-content:center;gap:8px;background:rgba(104,166,255,.09);
@@ -869,7 +871,8 @@ html[data-theme="light"] .daily-summary{color:#34455b}
 @keyframes daily-spin{to{transform:rotate(360deg)}}
 @media(max-width:780px){
   .daily-page-head{gap:12px}
-  .daily-head-actions{gap:8px}
+  .daily-head-actions{gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  .daily-ai-btn{min-height:44px;padding:0 11px}
   .daily-refresh-btn{width:44px;height:44px;min-height:44px;padding:0}
   .daily-refresh-btn svg{width:22px;height:22px}
   .daily-refresh-btn span{display:none}
