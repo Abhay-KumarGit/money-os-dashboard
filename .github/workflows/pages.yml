@@ -1,0 +1,85 @@
+name: Deploy approved Money OS Pages artifact
+
+on:
+  workflow_dispatch:
+    inputs:
+      artifact_tag:
+        description: "Approved public release tag created by private Money OS pipeline"
+        type: string
+        required: true
+      artifact_sha256:
+        description: "Expected SHA-256 checksum from the private release pipeline"
+        type: string
+        required: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: money-os-pages-deployment
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Download and verify the approved public artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_TAG: ${{ inputs.artifact_tag }}
+          ARTIFACT_SHA256: ${{ inputs.artifact_sha256 }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          [[ "$ARTIFACT_TAG" =~ ^pages-[[:xdigit:]]{12}-[0-9]+$ ]] || exit 1
+          [[ "$ARTIFACT_SHA256" =~ ^[[:xdigit:]]{64}$ ]] || exit 1
+          mkdir -p "$RUNNER_TEMP/site-archive" "$RUNNER_TEMP/site"
+          gh release download "$ARTIFACT_TAG" --repo "$GH_REPO" \
+            --pattern 'money-os-site.tar.gz' --dir "$RUNNER_TEMP/site-archive"
+          printf '%s  %s\n' "$ARTIFACT_SHA256" "$RUNNER_TEMP/site-archive/money-os-site.tar.gz" | sha256sum --check --status
+          python3 - <<'PY'
+          import os
+          import pathlib
+          import tarfile
+          src = pathlib.Path(os.environ['RUNNER_TEMP']) / 'site-archive' / 'money-os-site.tar.gz'
+          dest = pathlib.Path(os.environ['RUNNER_TEMP']) / 'site'
+          allowed = {
+              '.nojekyll', 'about.html', 'app.js', 'apple-touch-icon.png',
+              'icon-192.png', 'icon-512.png', 'icon.svg', 'index.html',
+              'manifest.webmanifest', 'privacy.html', 'styles.css', 'sw.js',
+              'assets/heritage-orbit-clean-dark.svg',
+              'assets/heritage-orbit-clean-light.svg',
+              'assets/heritage-orbit-dark.svg',
+              'assets/heritage-orbit-dark.webp',
+              'assets/heritage-orbit-light.svg',
+              'assets/heritage-orbit-light.webp',
+          }
+          with tarfile.open(src, 'r:gz') as bundle:
+              files = {member.name.removeprefix('./'): member for member in bundle if member.isfile()}
+              assert set(files) == allowed, f'Non-allowlisted artifact files: {set(files)^allowed}'
+              assert all(member.isreg() and member.size <= 8_000_000 for member in files.values())
+              for name, member in files.items():
+                  target = dest / name
+                  target.parent.mkdir(parents=True, exist_ok=True)
+                  stream = bundle.extractfile(member)
+                  assert stream is not None
+                  target.write_bytes(stream.read())
+          print('Approved 18 client-only static site files; no code checkout or private token.')
+          PY
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Upload verified website
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ runner.temp }}/site
+      - name: Deploy verified website
+        id: deployment
+        uses: actions/deploy-pages@v4
